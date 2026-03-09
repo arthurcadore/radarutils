@@ -1,0 +1,82 @@
+site_name: Radar Utils Library
+site_url: "https://github.com/arthurcadore/radarutils"
+
+repo_name: Radar Utils Library
+repo_url: https://github.com/arthurcadore/radarutils
+edit_uri: edit/main/web/
+docs_dir: web
+
+theme:
+  name: material
+  logo: assets/icon.svg
+  favicon: assets/icon.svg
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.tabs
+    - header.autohide
+    - search.suggest
+    - search.highlight
+    - toc.integrate
+    - content.code.copy
+    - content.code.highlight
+    - content.tooltips
+    - navigation.expand
+    - navigation.top
+    - repository.icon 
+  icon:
+    repo: fontawesome/brands/github 
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+  - site/hide_sidebar.js
+  
+extra_css:
+  - site/styles.css
+
+nav:
+  - Home: index.md
+  - Installation: 
+      - Installation pip: guide_pip.md
+      - Installation manual: guide.md
+      - Changelog: changelog.md
+  - Equations: 
+      - Radar Basics: docs/basics.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src/radarutils]
+          options:
+            show_source: false
+            show_submodules: true
+            members_order: source
+
+badges: 
+  - name: Stars 
+    image: https://img.shields.io/github/stars/arthurcadore/radarutils?style=social 
+    link: https://github.com/arthurcadore/radarutils/stargazers 
+  - name: Forks 
+    image: https://img.shields.io/github/forks/arthurcadore/radarutils?style=social 
+    link: https://github.com/arthurcadore/radarutils/network/members 
+  - name: Release
+    image: https://img.shields.io/github/v/release/arthurcadore/radarutils?style=flat
+    link: https://github.com/arthurcadore/radarutils/releases/latest
+    
+markdown_extensions:
+  - pymdownx.arithmatex:  
+      generic: true
+  - toc:  
+  - admonition:

@@ -1,0 +1,29 @@
+[project]
+name = "radarutils"
+version = "1.0.7"
+description = "A open-source library for Python 3 providing tools and equations for analysis and simulation of radar systems."
+readme = { file = "README.md", content-type = "text/markdown" }
+authors = [{ name = "Arthur Cadore", email = "arthurbarcella.ita@gmail.com" }]
+license = "MIT"
+license-files = ["LICENSE"]
+dependencies = [
+    "numpy>=1.21.0",
+    "matplotlib>=3.4.0",
+    "scipy>=1.7.0",
+    "scienceplots>=2.1.1"
+]
+requires-python = ">=3.8"
+
+[project.urls]
+Homepage = "https://arthurcadore.github.io/radarutils/"
+Repository = "https://github.com/arthurcadore/radarutils"
+
+[build-system]
+requires = ["build", "setuptools>=61.0.0", "wheel", "twine"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
