@@ -32,6 +32,10 @@ def calculate_Ae(g, f, c=LIGHT_SPEED):
     Returns:
         Ae (float): Effective area ($A_e$) of the antenna in square meters ($m^2$).
 
+    <div class="referencia">
+        <b>Reference:</b>
+        <p>Merill I. Skolnik - Introduction To Radar Systems Third Edition (Pg - 18) </p>
+    </div>
     """
 
     g_linear = 10 ** (g / 10)  # Convert gain from dB to linear scale
