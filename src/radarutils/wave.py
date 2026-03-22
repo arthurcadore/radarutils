@@ -51,16 +51,13 @@ class ArcComponent:
 # comentar que thr = s_min
 class Wavefront:
     def __init__(self, Pw, gain_pattern:GainPattern, threshold_db, center):
-        r"""
-
-
-        """ 
         self.Pw = Pw
         self.threshold_db = threshold_db
         self.gain_pattern = gain_pattern
         self.phi = center
         self.arcs = []
         self._build_arcs()
+        self.R=0
 
     def _build_arcs(self):
         # todo, explicar formula depois, mas basicamente é pra chegar no index com base na precisão angular para rotacionar o gain pattern
@@ -73,18 +70,20 @@ class Wavefront:
                 ArcComponent(i, self.Pw, rotated_gain[i])
             )
 
-    def update(self, R):
+    def update(self, step=1):
+        self.R += step 
         active_arcs = []
 
         for arc in self.arcs:
-            p_db = arc.compute_power_db(R)
+            # Agora usa o self.R interno
+            p_db = arc.compute_power_db(self.R)
 
-            # remove se cair abaixo do threashold
             if p_db >= self.threshold_db:
                 active_arcs.append(arc)
 
         self.arcs = active_arcs
 
+        
 if __name__ == "__main__":
     from .animations import animate_wavefront
     gp = GainPattern(10, "cosine", 10, 30)

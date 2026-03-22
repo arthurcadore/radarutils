@@ -32,7 +32,7 @@ class Radar:
 if __name__ == "__main__":
     from .animations import animate_radar
 
-    radar = Radar(5, 1, -80)
+    radar = Radar(5, 1, -80, 1, "sinc")
     R_values = np.linspace(1, 100, 100)
 
     animate_radar(radar, R_values)
