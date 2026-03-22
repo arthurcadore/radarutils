@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, PillowWriter
+from matplotlib.animation import FFMpegWriter
 from matplotlib.collections import LineCollection
 import matplotlib.cm as cm
 
@@ -92,7 +93,7 @@ class Scene:
 
                     wf.hit_targets.add(i)
 
-    def _update_frame(self, frame_idx, ax, collections, pulse_interval_s):
+    def _update_frame(self, frame_idx, fig, ax, collections, pulse_interval_s):
         current_t = self.t_vec[frame_idx]
 
         artists = []
@@ -149,26 +150,33 @@ class Scene:
 
         ax.set_title(f"t = {current_t:.2e}s", color="white")
 
+        if frame_idx == len(self.t_vec) - 1:
+            self.anim.event_source.stop()
+            plt.close(fig)
+
         return artists
 
-    def run_simulation(self, pulse_interval_s=0.0001):
+    def run_simulation(self, pulse_interval_s=0.0001, save_mp4=False, mp4_name="simulacao.mp4"):
         fig, ax = self._setup_plot()
 
         collections = [None]
 
         self._last_pulse_time = -pulse_interval_s
 
-        anim = FuncAnimation(
+        self.anim = FuncAnimation(
             fig,
             self._update_frame,
             frames=len(self.t_vec),
-            fargs=(ax, collections, pulse_interval_s),
+            fargs=(fig, ax, collections, pulse_interval_s),
             interval=30,
-            blit=True,
+            blit=False,
             repeat=False
         )
 
-        plt.show()
+
+        writer = FFMpegWriter(fps=30)
+        self.anim.save(mp4_name, writer=writer)
+        plt.close(fig)
 
 if __name__ == "__main__":
     from .radar import Radar
@@ -197,5 +205,5 @@ if __name__ == "__main__":
     scene.add_target(t1)
 
     scene.run_simulation(
-        pulse_interval_s=0.000001
+        pulse_interval_s=0.000001,
     )
