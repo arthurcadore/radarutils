@@ -1,11 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-from matplotlib.collections import LineCollection
-from matplotlib.animation import FuncAnimation
-from matplotlib.collections import LineCollection
-
-
 from .antenna import GainPattern
 
 class ArcComponent:
@@ -92,85 +85,14 @@ class Wavefront:
 
         self.arcs = active_arcs
 
-
-def animate_wavefront(wavefront: Wavefront, R_values):
-    fig, ax = plt.subplots()
-    ax.set_aspect('equal')
-    ax.set_facecolor("black")
-
-    max_R = np.max(R_values)
-
-    ax.set_xlim(-max_R * 1.1, max_R * 1.1)
-    ax.set_ylim(-max_R * 1.1, max_R * 1.1)
-
-    ax.plot(0, 0, 'wo')
-
-    collection = None
-
-    def update(frame):
-        nonlocal collection
-
-        R = frame
-
-        # atualiza modelo (remove arcos mortos)
-        wavefront.update(R)
-
-        arcs = wavefront.arcs
-
-        if not arcs:
-            return []
-
-        segments = []
-        powers_db = []
-
-        for arc in arcs:
-            theta = wavefront.gain_pattern.theta_vec[arc.idx]
-
-            # largura angular (resolução)
-            dtheta = wavefront.gain_pattern.theta_res
-
-            theta_segment = np.array([theta - dtheta/2, theta + dtheta/2])
-
-            x = R * np.cos(theta_segment)
-            y = R * np.sin(theta_segment)
-
-            segments.append(np.column_stack((x, y)))
-            powers_db.append(arc.power_db)
-
-        powers_db = np.array(powers_db)
-
-        norm = np.clip((powers_db - wavefront.threshold_db) / (0 - wavefront.threshold_db), 0, 1)
-        colors = cm.turbo(norm)
-
-        # remove frame anterior
-        if collection:
-            collection.remove()
-
-        collection = LineCollection(segments, colors=colors, linewidths=2)
-        ax.add_collection(collection)
-
-        ax.set_title(f"R = {R:.2f} | Arcos: {len(arcs)}")
-
-        return [collection]
-
-    anim = FuncAnimation(
-        fig,
-        update,
-        frames=R_values,
-        interval=50,
-        blit=True
-    )
-
-    plt.show()
-
-
 if __name__ == "__main__":
-    gp = GainPattern(1, "cosine", 10, 30)
+    from .animations import animate_wavefront
+    gp = GainPattern(10, "cosine", 10, 30)
     wf = Wavefront(0.01, gp, -100, 0)
 
     R_values = np.linspace(1, 100, 100)
 
     animate_wavefront(
-        wavefront=wf,
+        wavefront_template=wf,
         R_values=R_values,
     )

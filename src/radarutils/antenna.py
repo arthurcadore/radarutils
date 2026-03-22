@@ -1,7 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# alterar para classe abstrata.
+from .plotter import GainPatternPlot, create_figure, save_figure
+
 class GainPattern:
     def __init__(self, res_deg, pattern_type="ideal", gain_dBi=10, beamw_deg=60,
                  n=10, sidelobe_level=0.05, N=8, d_lambda=0.5):
@@ -49,32 +50,71 @@ class GainPattern:
             self.gain_dBi_vec = self.ideal_gain()
 
         elif self.pattern_type == "sinc":
-            self.gain_dBi_vec = self.sinc_gain(5)
+            self.gain_dBi_vec = self.sinc_gain()
 
         elif self.pattern_type == "cosine":
-            self.gain_dBi_vec = self.cosine_sectoral()
-
-        elif self.pattern_type == "taper":
-            self.gain_dBi_vec = self.cosine_taper()
-
-        elif self.pattern_type == "array":
-            self.gain_dBi_vec = self.array_factor()
-
+            self.gain_dBi_vec = self.cosine_gain()
         else:
             raise ValueError("Pattern type não suportado")
 
         self.gain_lin_vec = np.power(10, self.gain_dBi_vec / 10)
 
-    # ---------------------------------
-    # isotropic
-    # ---------------------------------
     def isotropic_gain(self):
+        r"""
+            Function to create a isotropic antenna, which in 2D corresponds to the same gain in all possible directions. Based on that, the equation to isotropic can be expressed as: 
+
+            $$
+            \begin{equation}
+                G(\theta) = G_i
+            \end{equation}
+            $$
+
+            Where: 
+                - $G$ is the gain of the antenna on a angle $\theta$.
+                - $G_i$ is a constant of gain for the antenna.
+            
+            Returns: 
+                gain_db_vec (float): Gain vector of irradiation pattern.
+
+            <div class="referencia">
+                <b>Reference:</b>
+                <p>Merill I. Skolnik - Introduction To Radar Systems Third Edition (Pg - 18) </p>
+            </div>
+        """
         return np.full_like(self.theta_vec, self.gain_dBi, dtype=float)
 
-    # ---------------------------------
-    # ideal (já existente)
-    # ---------------------------------
-    def ideal_gain(self):
+
+    def ideal_gain(self, atten_db=-40):
+        r"""
+            Function to create a ideal irradiation pattern for setorial transmission, which corresponds to the $\cos$ decay on beamwidth range and a very low gain outside the beamwidth range. The expression to calculate this pattern is given by: 
+
+            $$
+                \begin{equation}
+                G(\theta) =
+                \begin{cases}
+                \cos^n(\theta), & |\theta| \leq \dfrac{\theta_{3\text{dB}}}{2} \\
+                \epsilon, & |\theta| > \dfrac{\theta_{3\text{dB}}}{2}
+                \end{cases}
+                \end{equation}
+            $$
+            
+            Where: 
+                - $G$ is the gain of the antenna on a angle $\theta$.
+                - $n$ is a variable for the angle directivity. 
+                - $\epsilon$ is a attenuation value for outside the beamwidth ($-40dB$ by default).
+
+            Args: 
+                atten_db (float): $\epsilon$ is a attenuation value for outside the beamwidth ($-40dB$ by default).
+
+            Returns: 
+                gain_db_vec (float): Gain vector of irradiation pattern.
+
+            <div class="referencia">
+                <b>Reference:</b>
+                <p>Merill I. Skolnik - Introduction To Radar Systems Third Edition (Pg - 18) </p>
+            </div>
+        """
+        atten_lin = 10 ** (atten_db / 10)
         theta_3db = self.beamwidth_3dB / 2
 
         n = np.log(0.5) / np.log(np.cos(theta_3db))
@@ -86,80 +126,156 @@ class GainPattern:
             if abs(theta_norm) <= theta_3db:
                 gains_linear[i] = np.cos(theta_norm) ** n
             else:
-                gains_linear[i] = 1e-4
+                gains_linear[i] = atten_lin
 
         gains_linear /= np.max(gains_linear)
 
         return self.gain_dBi + 10 * np.log10(gains_linear + 1e-20)
 
-    # ---------------------------------
-    # sinc (já existente)
-    # ---------------------------------
-    def sinc_gain(self, atten_fac=10.0):
-        gains_linear = np.zeros_like(self.theta_vec)
+
+    def sinc_gain(self, atten_db=10):
+        r"""
+            Function to create an irradiation pattern based on a squared sinc function, commonly used to approximate the radiation pattern of a uniformly illuminated linear aperture. The normalized gain pattern is given by:
+
+            $$
+            \begin{equation}
+            G(\theta) = \left[ \frac{\sin(\frac{2\pi}{\theta_{3\text{dB}}} \sin(\theta))}{\frac{2\pi}{\theta_{3\text{dB}}} \sin(\theta)} \right]^2 \cdot e^{-\alpha |\theta|}
+            \end{equation}
+            $$
+
+            Where:
+                - $G(\theta)$ is the normalized antenna gain
+                - $\alpha$ is the sidelobe attenuation factor
+                - $e^{-\alpha |\theta|}$ is an exponential attenuation used to suppress sidelobes
+
+            Args:
+                atten_db (float): Exponential attenuation factor used to suppress sidelobes.
+
+            Returns:
+                gain_db_vec (np.ndarray): Gain vector in dB.
+
+            <div class="referencia">
+                <b>References:</b>
+                <p>
+                C. A. Balanis - Antenna Theory: Analysis and Design, 4th Ed., Chapter 10<br>
+                R. C. Hansen - Phased Array Antennas
+                </p>
+            </div>
+        """
+        theta_norm = np.arctan2(np.sin(self.theta_vec), np.cos(self.theta_vec))
+        atten_lin = 10 ** (atten_db / 10)
+
         k = 2 * np.pi / self.beamwidth_3dB
+        u = k * np.sin(theta_norm)
 
-        for i, theta in enumerate(self.theta_vec):
-            theta_norm = np.arctan2(np.sin(theta), np.cos(theta))
-            u = k * np.sin(theta_norm)
+        gains_linear = np.ones_like(u)
+        mask = ~np.isclose(u, 0.0)
+        gains_linear[mask] = (np.sin(u[mask]) / u[mask]) ** 2
 
-            if np.isclose(u, 0):
-                val = 1.0
-            else:
-                val = (np.sin(u) / u) ** 2
-                val *= np.exp(-atten_fac * abs(theta_norm))
-
-            gains_linear[i] = val
-
-        # atenua back lobe
-        for i, theta in enumerate(self.theta_vec):
-            theta_norm = np.arctan2(np.sin(theta), np.cos(theta))
-            if abs(theta_norm) > np.pi / 2:
-                gains_linear[i] *= 0.01
-
-        gains_linear /= np.max(gains_linear)
+        gains_linear *= np.exp(-atten_lin * np.abs(theta_norm))
 
         return self.gain_dBi + 10 * np.log10(gains_linear + 1e-20)
 
-    def cosine_sectoral(self, atten_fac=3):
+    def cosine_gain(self, atten_db=9):
+        r"""
+            Function to create a sectoral irradiation pattern, similar to a omnidirectional vertical 2D plane, based on a cosine power model. The radiation pattern is defined as:
+
+            $$
+            \begin{equation}
+            G(\theta) = \cos^{n \cdot \alpha}(\theta)
+            \end{equation}
+            $$
+
+            Where:
+                - $G(\theta)$ is the normalized antenna gain
+                - $n$ is a variable for the angle directivity. 
+                - $\alpha$ is the sidelobe attenuation factor
+
+            Args:
+                atten_db (float): Exponential attenuation factor used to suppress sidelobes.
+
+            Returns:
+                gain_db_vec (np.ndarray): Gain vector in dB.
+
+            <div class="referencia">
+                <b>References:</b>
+                <p>
+                C. A. Balanis - Antenna Theory: Analysis and Design, 4th Ed.<br>
+                T. S. Rappaport - Wireless Communications: Principles and Practice
+                </p>
+            </div>
+            """
+
         gains_linear = np.zeros_like(self.theta_vec)
+        atten_lin = int(10 ** (atten_db / 10))
 
         for i, theta in enumerate(self.theta_vec):
             theta_norm = np.arctan2(np.sin(theta), np.cos(theta))
 
-            val = np.cos(theta_norm) ** (self.n * atten_fac)
+            val = np.cos(theta_norm) ** (self.n * atten_lin)
             gains_linear[i] = max(val, 0)
 
         gains_linear /= np.max(gains_linear)
 
         return self.gain_dBi + 10 * np.log10(gains_linear + 1e-20)
 
-
-def plot_GainPattern(gp):
-
-    theta = gp.theta_vec
-    gain = gp.gain_dBi_vec
-
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='polar')
-
-    ax.plot(theta, gain)
-    ax.set_title("Diagrama de Irradiação (dBi)")
-
-    # opcional: ajustar escala
-    ax.set_rlabel_position(90)
-    ax.grid(True)
-
-    return plt
-
-
 if __name__ == "__main__":
-    gp = GainPattern(
+    gp1 = GainPattern(
+        res_deg=0.1,
+        pattern_type="isotropic",
+        gain_dBi=10,
+        beamw_deg=45
+    )
+
+    gp2 = GainPattern(
+        res_deg=0.1,
+        pattern_type="ideal",
+        gain_dBi=10,
+        beamw_deg=45
+    )
+
+    gp3 = GainPattern(
+        res_deg=0.1,
+        pattern_type="sinc",
+        gain_dBi=10,
+        beamw_deg=45
+    )
+
+    gp4 = GainPattern(
         res_deg=0.1,
         pattern_type="cosine",
         gain_dBi=10,
-        beamw_deg=1
+        beamw_deg=45
     )
 
-    plot = plot_GainPattern(gp)
-    plot.show()
+    patterns, grid = create_figure(2, 2)
+
+    GainPatternPlot(
+        patterns, grid, (0, 0),
+        gp=gp1,
+        title="Isotropic",
+        colors="blue"
+    )
+
+    GainPatternPlot(
+        patterns, grid, (0, 1),
+        gp=gp2,
+        title="Ideal",
+        colors="red"
+    )
+
+    GainPatternPlot(
+        patterns, grid, (1, 0),
+        gp=gp3,
+        title="sinc",
+        colors="orange"
+    )
+
+    GainPatternPlot(
+        patterns, grid, (1, 1),
+        gp=gp4,
+        title="cosine",
+        colors="green"
+    )
+
+    save_figure(patterns, "example_antenna_patterns.pdf")

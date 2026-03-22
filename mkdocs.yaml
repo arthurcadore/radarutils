@@ -56,6 +56,8 @@ nav:
       - Wave Front: docs/wave.md
       - Antenna: docs/antenna.md
       - Radar: docs/radar.md
+  - Plots:
+      - Plotter: docs/plotter.md
 
 plugins:
   - search
