@@ -1,11 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from .plotter import GainPatternPlot, create_figure, save_figure
+from .plotter import create_figure, save_figure, GainPatternPlot, GainPattern3DPlot
 
 class GainPattern:
-    def __init__(self, res_deg, pattern_type="ideal", gain_dBi=10, beamw_deg=60,
-                 n=10, sidelobe_level=0.05, N=8, d_lambda=0.5):
+    def __init__(self, res_deg, pattern_type="ideal", gain_dBi=10, beamw_deg=60):
         
         r"""
         Gain Pattern simulation. Used to create a irradiation diagram used for futher signal propagation. The diagram simulation is devided in $N$ components that represents the angular resolution of the simulation based on a angle $\theta$, the expression for $N$: 
@@ -27,37 +26,40 @@ class GainPattern:
             beamw_deg (deg): Beamwidth of the antenna (Beam from max dBi to -3dB). 
         """
 
-        self.theta_res = np.deg2rad(res_deg)
+        self.res_deg = np.deg2rad(res_deg)
         self.pattern_type = pattern_type
         self.gain_dBi = gain_dBi
         self.beamwidth_3dB = np.deg2rad(beamw_deg)
+        self.theta_vec = np.arange(0, 2*np.pi + self.res_deg, self.res_deg)
+        self.phi_vec   = np.arange(0, 2*np.pi + self.res_deg, self.res_deg)
+        self.theta_len = len(self.theta_vec)
+        self.phi_len = len(self.phi_vec)
 
-        # novos parâmetros
-        self.n = n
-        self.sidelobe_level = sidelobe_level
-        self.N = N
-        self.d_lambda = d_lambda
-
-        self.theta_vec = np.arange(0, 2*np.pi, self.theta_res)
-        self.len_vec = len(self.theta_vec)
-        self.gain_dBi_vec = None
-
+        # Matriz Quadrada horizontal x Vertical 
+        self.Hgain_dBi_vec = None
+        self.Vgain_dBi_vec = None
+        self.gain_dBi_matrix = None
 
         if self.pattern_type == "isotropic":
-            self.gain_dBi_vec = self.isotropic_gain()
+            self.gain_dBi_matrix = self.isotropic_gain()
+            # gera os vetores de H e V plane com base na primeira coluna e primeira linha.
+            self.Hgain_dBi_vec = self.gain_dBi_matrix[0, :]
+            self.Vgain_dBi_vec = self.gain_dBi_matrix[:, 0]
 
         elif self.pattern_type == "ideal":
-            self.gain_dBi_vec = self.ideal_gain()
-
+            self.Hgain_dBi_vec, self.Vgain_dBi_vec  = self.ideal_gain()
+                
         elif self.pattern_type == "sinc":
-            self.gain_dBi_vec = self.sinc_gain()
+            self.Hgain_dBi_vec, self.Vgain_dBi_vec = self.sinc_gain()
 
         elif self.pattern_type == "cosine":
-            self.gain_dBi_vec = self.cosine_gain()
+            self.Hgain_dBi_vec, self.Vgain_dBi_vec = self.cosine_gain()
         else:
             raise ValueError("Pattern type não suportado")
 
-        self.gain_lin_vec = np.power(10, self.gain_dBi_vec / 10)
+        self.Hgain_lin_vec = np.power(10, self.Hgain_dBi_vec / 10)
+        self.Vgain_lin_vec = np.power(10, self.Vgain_dBi_vec / 10)
+
 
     def isotropic_gain(self):
         r"""
@@ -65,23 +67,29 @@ class GainPattern:
 
             $$
             \begin{equation}
-                G(\theta) = G_i
+                G(\theta, \phi) = G_i
             \end{equation}
             $$
 
             Where: 
-                - $G$ is the gain of the antenna on a angle $\theta$.
+                - $G$ is the gain of the antenna on a angle $\theta$ and $\phi$
                 - $G_i$ is a constant of gain for the antenna.
             
             Returns: 
-                gain_db_vec (float): Gain vector of irradiation pattern.
+                gain_dBi_matrix (float): Matrix of gain for $\theta$ and $\phi$.
 
             <div class="referencia">
                 <b>Reference:</b>
                 <p>Merill I. Skolnik - Introduction To Radar Systems Third Edition (Pg - 18) </p>
             </div>
         """
-        return np.full_like(self.theta_vec, self.gain_dBi, dtype=float)
+
+        gain_dBi_matrix = np.full(
+            (self.phi_len, self.theta_len),
+            self.gain_dBi,
+            dtype=float
+        )    
+        return gain_dBi_matrix
 
 
     def ideal_gain(self, atten_db=-40):
@@ -107,7 +115,8 @@ class GainPattern:
                 atten_db (float): $\epsilon$ is a attenuation value for outside the beamwidth ($-40dB$ by default).
 
             Returns: 
-                gain_db_vec (float): Gain vector of irradiation pattern.
+                H_plane (float): Gain vector of irradiation pattern on Horizontal Axis.
+                V_plane (float): Gain vector of irradiation pattern on Vertical Axis.
 
             <div class="referencia">
                 <b>Reference:</b>
@@ -130,7 +139,10 @@ class GainPattern:
 
         gains_linear /= np.max(gains_linear)
 
-        return self.gain_dBi + 10 * np.log10(gains_linear + 1e-20)
+        H_plane = self.gain_dBi + 10 * np.log10(gains_linear + 1e-20)
+        V_plane = H_plane
+
+        return H_plane, V_plane
 
 
     def sinc_gain(self, atten_db=10):
@@ -174,7 +186,10 @@ class GainPattern:
 
         gains_linear *= np.exp(-atten_lin * np.abs(theta_norm))
 
-        return self.gain_dBi + 10 * np.log10(gains_linear + 1e-20)
+        H_plane = self.gain_dBi + 10 * np.log10(gains_linear + 1e-20)
+        V_plane = H_plane
+
+        return H_plane, V_plane
 
     def cosine_gain(self, atten_db=9):
         r"""
@@ -209,40 +224,46 @@ class GainPattern:
         gains_linear = np.zeros_like(self.theta_vec)
         atten_lin = int(10 ** (atten_db / 10))
 
+        theta_3db = self.beamwidth_3dB / 2
+        n = int(np.log(0.5) / np.log(np.cos(theta_3db)))
+
         for i, theta in enumerate(self.theta_vec):
             theta_norm = np.arctan2(np.sin(theta), np.cos(theta))
 
-            val = np.cos(theta_norm) ** (self.n * atten_lin)
+            val = np.cos(theta_norm) ** (n* atten_lin)
             gains_linear[i] = max(val, 0)
 
         gains_linear /= np.max(gains_linear)
+    
+        H_plane = np.full_like(self.theta_vec, self.gain_dBi, dtype=float)
+        V_plane = self.gain_dBi + 10 * np.log10(gains_linear + 1e-20)
 
-        return self.gain_dBi + 10 * np.log10(gains_linear + 1e-20)
+        return H_plane, V_plane
 
 if __name__ == "__main__":
     gp1 = GainPattern(
-        res_deg=0.1,
+        res_deg=1,
         pattern_type="isotropic",
         gain_dBi=10,
         beamw_deg=45
     )
 
     gp2 = GainPattern(
-        res_deg=0.1,
+        res_deg=1,
         pattern_type="ideal",
         gain_dBi=10,
         beamw_deg=45
     )
 
     gp3 = GainPattern(
-        res_deg=0.1,
+        res_deg=1,
         pattern_type="sinc",
         gain_dBi=10,
         beamw_deg=45
     )
 
     gp4 = GainPattern(
-        res_deg=0.1,
+        res_deg=1,
         pattern_type="cosine",
         gain_dBi=10,
         beamw_deg=45
@@ -253,29 +274,53 @@ if __name__ == "__main__":
     GainPatternPlot(
         patterns, grid, (0, 0),
         gp=gp1,
-        title="Isotropic",
-        colors="blue"
+        title="Isotropic Pattern V/H Plane",
+        colors=["red", "blue"],
     )
 
     GainPatternPlot(
         patterns, grid, (0, 1),
         gp=gp2,
-        title="Ideal",
-        colors="red"
+        title="Ideal Pattern V/H Plane",
+        colors=["red", "blue"],
     )
 
     GainPatternPlot(
         patterns, grid, (1, 0),
         gp=gp3,
-        title="sinc",
-        colors="orange"
+        title="Sinc Pattern V/H Plane",
+        colors=["red", "blue"],
     )
 
     GainPatternPlot(
         patterns, grid, (1, 1),
         gp=gp4,
-        title="cosine",
-        colors="green"
+        title="Cosine Pattern V/H Plane",
+        colors=["red", "blue"],
+        r_min=-100,
+        r_max=15,
     )
 
     save_figure(patterns, "example_antenna_patterns.pdf")
+
+
+    patternIso, grid = create_figure(1, 2)
+    GainPatternPlot(
+        patternIso, grid, (0, 0),
+        gp=gp1,
+        title="Isotropic Pattern V/H Plane",
+        colors=["red", "blue"],
+        r_min=-15,
+        r_max=15,
+    )
+
+    GainPattern3DPlot(
+        patternIso,
+        grid,
+        (0, 1),
+        gp=gp1,
+        title="3D Pattern (Estimated from H/V)",
+        cmap="jet"
+    )
+
+    save_figure(patternIso, "example_antenna_pattern_Iso.pdf")

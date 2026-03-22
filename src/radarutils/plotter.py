@@ -5,6 +5,8 @@ import matplotlib.gridspec as gridspec
 import scienceplots 
 import os
 from typing import Optional, List, Union, Tuple, Dict, Any
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
 
 # General plot parameters
 mpl.rcParams["pdf.fonttype"] = 42
@@ -135,19 +137,6 @@ class BasePlot:
         return None
 
 class GainPatternPlot(BasePlot):
-    r"""
-    Plot class for antenna gain pattern in polar coordinates.
-
-    Args:
-        ax (plt.Axes): Polar axis
-        gp: GainPattern object with theta_vec and gain_dBi_vec
-        title (str): Plot title
-        colors: Plot color(s)
-        style: Additional style dict
-
-    Examples:
-        - 4 Different Antennas: ![pageplot](../../assets/plots/example_antenna_patterns.svg)
-    """
     def __init__(self,
                  fig: plt.Figure,
                  grid: gridspec.GridSpec,
@@ -155,7 +144,9 @@ class GainPatternPlot(BasePlot):
                  gp,
                  title: str = "Diagrama de Irradiação (dBi)",
                  colors: Optional[Union[str, List[str]]] = None,
-                 style: Optional[Dict[str, Any]] = None):
+                 style: Optional[Dict[str, Any]] = None,
+                 r_min: Optional[float] = None,
+                 r_max: Optional[float] = None):
 
         ax = fig.add_subplot(grid[position], projection='polar')
 
@@ -168,21 +159,123 @@ class GainPatternPlot(BasePlot):
         )
 
         self.gp = gp
+        self.r_min = r_min
+        self.r_max = r_max
+
         self.plot()
 
     def plot(self) -> None:
         theta = self.gp.theta_vec
-        gain = self.gp.gain_dBi_vec
+        phi   = self.gp.phi_vec
+        Hgain = self.gp.Hgain_dBi_vec
+        Vgain = self.gp.Vgain_dBi_vec
 
-        if len(theta) == 0 or len(gain) == 0:
+        if len(theta) == 0 or len(Hgain) == 0 or len(Vgain) == 0:
             print("Erro: vetores vazios")
             return
 
-        color = self.apply_color(0) or "blue"
-        self.ax.plot(theta, gain, color=color)
+        # Escolhe cores, ou default
+        color_H = self.apply_color(0) or "blue"
+        color_V = self.apply_color(1) or "red"
+
+        # Plot H-plane e V-plane
+        self.ax.plot(theta, Hgain, color=color_H, label="H-plane", linestyle="--")
+        self.ax.plot(phi, Vgain, color=color_V, label="V-plane", linestyle=":")
+
+        # Ajusta posição dos rótulos radiais
         self.ax.set_rlabel_position(90)
 
-        # Escala
-        self.ax.set_ylim(np.min(gain), np.max(gain))
+        # Ajusta escala radial com base nos dois vetores ou valores fornecidos
+        min_gain = self.r_min if self.r_min is not None else min(np.min(Hgain), np.min(Vgain))
+        max_gain = self.r_max if self.r_max is not None else max(np.max(Hgain), np.max(Vgain))
+        self.ax.set_ylim(min_gain, max_gain)
 
+        self.apply_ax_style()
+
+
+class GainPattern3DPlot(BasePlot):
+    def __init__(self,
+                 fig: plt.Figure,
+                 grid: gridspec.GridSpec,
+                 position: Tuple[int, int],
+                 gp,
+                 title: str = "3D Radiation Pattern (Estimated)",
+                 cmap: str = "jet",
+                 phi_res: int = 90,
+                 normalize: bool = True):
+
+        ax = fig.add_subplot(grid[position], projection='3d')
+
+        super().__init__(
+            ax=ax,
+            title=title,
+            labels=None,
+            colors=None,
+            style=None
+        )
+
+        self.gp = gp
+        self.cmap = cmap
+        self.phi_res = phi_res
+        self.normalize = normalize
+
+        self.plot()
+    def plot(self) -> None:
+
+        theta = self.gp.theta_vec
+        phi   = self.gp.phi_vec
+
+        if self.gp.gain_dBi_matrix is None:
+            print("Erro: gain_dBi_matrix não definido")
+            return
+
+        phi_mask = phi <= np.pi
+        phi_plot = phi[phi_mask]
+        gain_matrix = self.gp.gain_dBi_matrix[phi_mask, :]
+        THETA, PHI = np.meshgrid(theta, phi_plot)
+
+        R = 10 ** (gain_matrix / 10)
+        if self.normalize:
+            R = R / np.max(R)
+
+        X = R * np.sin(PHI) * np.cos(THETA)
+        Y = R * np.sin(PHI) * np.sin(THETA)
+        Z = R * np.cos(PHI)
+
+        gmin = np.min(gain_matrix)
+        gmax = np.max(gain_matrix)
+        vmin = gmin - 1
+        vmax = gmax + 1
+
+        norm = plt.Normalize(vmin=vmin, vmax=vmax)
+        cmap = plt.cm.get_cmap(self.cmap)
+        facecolors = cmap(norm(gain_matrix))
+
+        surf = self.ax.plot_surface(
+            X, Y, Z,
+            facecolors=facecolors,
+            linewidth=0,
+            antialiased=True
+        )
+
+        self.ax.set_box_aspect([1, 1, 1])
+        self.ax.set_xlabel("X")
+        self.ax.set_ylabel("Y")
+        self.ax.set_zlabel("Z")
+
+        self.ax.set_title(self.title)
+
+        mappable = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+        mappable.set_array(gain_matrix)
+
+        cbar = plt.colorbar(mappable, ax=self.ax, shrink=0.6, pad=0.1)
+        cbar.set_label("Gain (dBi)")
+        ticks = np.linspace(vmin, vmax, 5)
+        ticks[0] = vmin
+        ticks[-1] = vmax
+
+        cbar.set_ticks(ticks)
+        cbar.set_ticklabels([f"{t:.1f}" for t in ticks])
+
+        self.ax.grid(True)
         self.apply_ax_style()

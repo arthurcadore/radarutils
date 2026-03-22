@@ -61,7 +61,7 @@ def animate_wavefront(wavefront_template: Wavefront, R_values, pulse_interval=10
 
                 for arc in wf.arcs:
                     theta = wf.gain_pattern.theta_vec[arc.idx]
-                    dtheta = wf.gain_pattern.theta_res
+                    dtheta = wf.gain_pattern.res_deg
 
                     theta_segment = np.array([
                         theta - dtheta/2,
