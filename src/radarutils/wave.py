@@ -43,27 +43,30 @@ class ArcComponent:
             <p>Merill I. Skolnik - Introduction To Radar Systems Third Edition (Pg - 18) </p>
         </div>
         """
-        P = self.PtW * self.Gt_lin / (4 * np.pi * R**2)
+        P = self.PtW * self.Gt_lin / (4 * np.pi * R**2 + 1e-20)
         self.power_db = 10 * np.log10(P + 1e-20)
         return self.power_db
 
-
-# comentar que thr = s_min
 class Wavefront:
-    def __init__(self, Pw, gain_pattern:GainPattern, threshold_db, center):
+    def __init__(self, Pw, gain_pattern: GainPattern, threshold_db, center, x0=0, y0=0):
         self.Pw = Pw
         self.threshold_db = threshold_db
         self.gain_pattern = gain_pattern
         self.phi = center
+        self.x0 = x0
+        self.y0 = y0
+
         self.arcs = []
+        self.R = 0
+        self.t0 = 0
+
+        self.hit_targets = set()
         self._build_arcs()
-        self.R=0
 
     def _build_arcs(self):
-        # todo, explicar formula depois, mas basicamente é pra chegar no index com base na precisão angular para rotacionar o gain pattern
-        shift_indices = int(np.deg2rad(self.phi) / self.gain_pattern.res_deg)
+        shift_indices = int(self.phi / self.gain_pattern.res_deg)
         rotated_gain = np.roll(self.gain_pattern.Hgain_lin_vec, shift_indices)
-    
+
         self.arcs = []
         for i in range(len(self.gain_pattern.theta_vec)):
             self.arcs.append(
@@ -71,11 +74,10 @@ class Wavefront:
             )
 
     def update(self, step=1):
-        self.R += step 
+        self.R += step
         active_arcs = []
 
         for arc in self.arcs:
-            # Agora usa o self.R interno
             p_db = arc.compute_power_db(self.R)
 
             if p_db >= self.threshold_db:
