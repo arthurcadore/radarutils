@@ -49,7 +49,6 @@ class ArcComponent:
 
 
 # comentar que thr = s_min
-
 class Wavefront:
     def __init__(self, Pw, gain_pattern:GainPattern, threshold_db, center):
         r"""
@@ -65,10 +64,11 @@ class Wavefront:
 
     def _build_arcs(self):
         # todo, explicar formula depois, mas basicamente é pra chegar no index com base na precisão angular para rotacionar o gain pattern
-        self.phi_idx = int((self.phi/360)*self.gain_pattern.theta_len) 
-        rotated_gain = np.roll(self.gain_pattern.Hgain_lin_vec, self.phi_idx)
-
-        for i, _ in enumerate(self.gain_pattern.theta_vec):
+        shift_indices = int(np.deg2rad(self.phi) / self.gain_pattern.res_deg)
+        rotated_gain = np.roll(self.gain_pattern.Hgain_lin_vec, shift_indices)
+    
+        self.arcs = []
+        for i in range(len(self.gain_pattern.theta_vec)):
             self.arcs.append(
                 ArcComponent(i, self.Pw, rotated_gain[i])
             )
@@ -87,8 +87,8 @@ class Wavefront:
 
 if __name__ == "__main__":
     from .animations import animate_wavefront
-    gp = GainPattern(10, "isotropic", 10, 30)
-    wf = Wavefront(0.01, gp, -100, 0)
+    gp = GainPattern(10, "cosine", 10, 30)
+    wf = Wavefront(1, gp, -100, 0)
 
     R_values = np.linspace(1, 100, 100)
 

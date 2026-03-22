@@ -224,20 +224,17 @@ class GainPattern:
         gains_linear = np.zeros_like(self.theta_vec)
         atten_lin = int(10 ** (atten_db / 10))
 
-        theta_3db = self.beamwidth_3dB / 2
-        n = int(np.log(0.5) / np.log(np.cos(theta_3db)))
-
         for i, theta in enumerate(self.theta_vec):
             theta_norm = np.arctan2(np.sin(theta), np.cos(theta))
 
-            val = np.cos(theta_norm) ** (n* atten_lin)
+            val = np.cos(theta_norm) ** (10 * atten_lin)
             gains_linear[i] = max(val, 0)
 
         gains_linear /= np.max(gains_linear)
-    
-        H_plane = np.full_like(self.theta_vec, self.gain_dBi, dtype=float)
-        V_plane = self.gain_dBi + 10 * np.log10(gains_linear + 1e-20)
 
+        H_plane = self.gain_dBi + 10 * np.log10(gains_linear + 1e-20)
+        V_plane = np.full_like(self.theta_vec, self.gain_dBi, dtype=float)
+        
         return H_plane, V_plane
 
 if __name__ == "__main__":

@@ -137,6 +137,19 @@ class BasePlot:
         return None
 
 class GainPatternPlot(BasePlot):
+    r"""
+    Examples:
+        - 4 Different Antennas: ![pageplot](../../assets/plots/example_antenna_patterns.svg)
+    
+    Args:
+        ax (plt.Axes): Matplotlib `Axes` object. 
+        title (str): Plot title. 
+        labels (Optional[List[str]]): List of axis labels. 
+        xlim (Optional[Tuple[float, float]]): Limits of the x-axis `x = [xlim[0], xlim[1]]`. 
+        ylim (Optional[Tuple[float, float]]): Limits of the y-axis `y = [ylim[0], ylim[1]]`. 
+        colors (Optional[Union[str, List[str]]]): Plot colors. 
+        style (Optional[Dict[str, Any]]): Plot style.
+    """
     def __init__(self,
                  fig: plt.Figure,
                  grid: gridspec.GridSpec,
