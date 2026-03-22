@@ -52,6 +52,10 @@ nav:
       - Changelog: changelog.md
   - Equations: 
       - Radar Basics: docs/basics.md
+  - Simulation Components:
+      - Wave Front: docs/wave.md
+      - Antenna: docs/antenna.md
+      - Radar: docs/radar.md
 
 plugins:
   - search
