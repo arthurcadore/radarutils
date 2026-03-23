@@ -30,8 +30,20 @@ class Scene:
         self.targets.append(target)
 
     def _setup_plot(self):
-        fig, ax = plt.subplots(figsize=(8, 8))
+        # 🔥 calcula proporção real
+        width = abs(self.x_lim[1] - self.x_lim[0])
+        height = abs(self.y_lim[1] - self.y_lim[0])
+        ratio = width / height
+
+        base_size = 6  # altura base
+        fig_width = base_size * ratio
+        fig_height = base_size
+
+        fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+
+        fig.patch.set_facecolor("#1e2129")
         ax.set_facecolor("black")
+
         ax.set_xlim(self.x_lim)
         ax.set_ylim(self.y_lim)
         ax.set_aspect('equal')
@@ -112,16 +124,62 @@ class Scene:
     def _update_frame(self, frame_idx, fig, ax, collections, pulse_interval_s):
         current_t = self.t_vec[frame_idx]
 
+        # 🔥 limpa completamente o frame (corrige GIF)
+        ax.clear()
+
+        # divisões principais
+        nx = 10
+        ny = 10
+
+        # subdivisões
+        sub = 5
+
+        xticks = np.linspace(self.x_lim[0], self.x_lim[1], nx + 1)
+        yticks = np.linspace(self.y_lim[0], self.y_lim[1], ny + 1)
+
+        ax.set_xticks(xticks)
+        ax.set_yticks(yticks)
+
+        # minor grid (subdivisão)
+        ax.set_xticks(np.linspace(self.x_lim[0], self.x_lim[1], nx*sub + 1), minor=True)
+        ax.set_yticks(np.linspace(self.y_lim[0], self.y_lim[1], ny*sub + 1), minor=True)
+
+        ax.grid(which='major', color='gray', linestyle='-', linewidth=0.6, alpha=0.5)
+        ax.grid(which='minor', color='gray', linestyle='--', linewidth=0.3, alpha=0.2)
+        ax.set_xlabel("X (m)", color="white")
+        ax.set_ylabel("Y (m)", color="white")
+
+        # 🔁 reconfigura o plot
+        ax.set_facecolor("black")
+        ax.set_xlim(self.x_lim)
+        ax.set_ylim(self.y_lim)
+        ax.set_aspect('equal')
+
+        # 🔥 restaura eixos e estilo
+        ax.tick_params(colors='white')
+        for spine in ax.spines.values():
+            spine.set_color('white')
+
+        
+
+        # 🔁 redesenha elementos fixos
+        for r in self.radars:
+            ax.plot(r.x, r.y, 'wo', markersize=5)
+
+        for t in self.targets:
+            ax.plot(t.x, t.y, 'ro', markersize=5)
+
         artists = []
         segments = []
         powers_db = []
 
+        # 🔹 controle de pulso
         should_pulse = False
-
         if current_t - self._last_pulse_time >= pulse_interval_s:
             should_pulse = True
             self._last_pulse_time = current_t
 
+        # 🔹 radars
         for radar in self.radars:
             radar.phi = (radar.ang_vel * current_t) % 360
 
@@ -138,6 +196,7 @@ class Scene:
 
             radar.waves = active_waves
 
+        # 🔹 targets
         for target in self.targets:
             active_waves = []
 
@@ -149,9 +208,7 @@ class Scene:
 
             target.waves = active_waves
 
-        if collections[0]:
-            collections[0].remove()
-
+        # 🔹 desenha ondas
         if segments:
             norm = np.clip((np.array(powers_db) + 120) / 120, 0, 1)
 
@@ -162,18 +219,19 @@ class Scene:
             )
 
             ax.add_collection(coll)
-            collections[0] = coll
             artists.append(coll)
 
+        # 🔹 título
         ax.set_title(f"t = {current_t:.2e}s", color="white")
 
+        # 🔹 finalização
         if frame_idx == len(self.t_vec) - 1:
             self.anim.event_source.stop()
             plt.close(fig)
 
         return artists
 
-    def run_simulation(self, pulse_interval_s=0.0001, save_mp4=True, mp4_name="simulacao.mp4"):
+    def run_simulation(self, pulse_interval_s=0.0001, save_type="gif", save_name="simulacao"):
         fig, ax = self._setup_plot()
 
         collections = [None]
@@ -190,9 +248,21 @@ class Scene:
             repeat=False
         )
 
-        if save_mp4:
-            writer = FFMpegWriter(fps=30)
-            self.anim.save(mp4_name, writer=writer)
+        if save_type == "gif":
+            writer = PillowWriter(fps=30)
+            self.anim.save(
+                f"{save_name}.gif",
+                writer=writer,
+                dpi=100,
+                savefig_kwargs={
+                    "facecolor": "#1e2129",
+                    "bbox_inches": "tight"
+                }
+            )
+            plt.close(fig)
+        elif save_type == "mp4":
+            writer = FFMpegWriter(fps=30) 
+            self.anim.save(f"{save_name}.mp4", writer=writer) 
             plt.close(fig)
         else: 
             plt.show()
@@ -225,10 +295,10 @@ if __name__ == "__main__":
     from .target import Target
     
     scene = Scene(
-        t_max=0.00001,
+        t_max=0.00002,
         dt=0.00000002,
-        x_lim=(-500, 500),
-        y_lim=(-500, 500)
+        x_lim=(-1200, 1200),
+        y_lim=(-600, 600)
     )
     
     radar = Radar(
@@ -241,12 +311,12 @@ if __name__ == "__main__":
         Pw=10
     )
     
-    t1 = Target(x=400,y=0)
+    t1 = Target(x=480,y=0)
 
     scene.add_radar(radar)
     scene.add_target(t1)
 
     scene.run_simulation(
-        pulse_interval_s=3e-6,
+        pulse_interval_s=3.5e-6,
     )
     scene.save_data()

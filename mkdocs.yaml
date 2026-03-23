@@ -46,16 +46,19 @@ extra_css:
 
 nav:
   - Home: index.md
-  - Installation: 
-      - Installation pip: guide_pip.md
-      - Installation manual: guide.md
-      - Changelog: changelog.md
+  # - Installation: 
+  #     - Installation pip: guide_pip.md
+  #     - Installation manual: guide.md
+  #     - Changelog: changelog.md
   - Equations: 
       - Radar Basics: docs/basics.md
-  - Simulation Components:
-      - Wave Front: docs/wave.md
-      - Antenna: docs/antenna.md
-      - Radar: docs/radar.md
+  - Simulations:
+      - Basic Components: 
+        - Wave Front: docs/wave.md
+        - Antenna: docs/antenna.md
+      - Radar And Target: 
+        - Radar: docs/radar.md
+      
   - Plots:
       - Plotter: docs/plotter.md
 

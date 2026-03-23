@@ -5,6 +5,21 @@ from .wave import Wavefront
 class Radar:
     def __init__(self, res_deg, smin_db, Pw=0.1, pattern_type="ideal",
                  gain_dBi=1, x=0, y=0, ang_vel_deg_s=10, phi=0, pulse_width_s=1e-7):
+        r"""
+        Class for plotting signals in the time domain, receiving a time vector $t$, and a list of signals $s(t)$.
+
+        Args:
+            fig (plt.Figure): Figure object
+            grid (gridspec.GridSpec): GridSpec object
+            pos (int): Plot position
+            t (np.ndarray): Time vector
+            signals (Union[np.ndarray, List[np.ndarray]]): Signal or list of signals $s(t)$.
+            time_unit (str): Time unit for plotting ("ms" by default, can be "s").
+            amp_norm (bool): Signal normalization for maximum amplitude
+
+        Examples:
+            ![pageplot](../../assets/simulations/simulacao.gif)
+        """
 
         self.ang_vel = ang_vel_deg_s
         self.x = x
