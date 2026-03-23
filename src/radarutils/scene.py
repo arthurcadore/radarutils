@@ -5,6 +5,8 @@ from matplotlib.animation import FFMpegWriter
 from matplotlib.collections import LineCollection
 import matplotlib.cm as cm
 
+from .data import ExportData, ImportData
+
 
 class Scene:
     def __init__(self, t_max, dt, x_lim=(-500, 500), y_lim=(-500, 500), c=299792458):
@@ -195,51 +197,27 @@ class Scene:
         else: 
             plt.show()
 
-    def plot_rx_signal(self):
-        import matplotlib.pyplot as plt
+    def save_data(self):
         import numpy as np
 
         for i, radar in enumerate(self.radars):
-            plt.figure()
-
             # TX
             t_tx = np.array(radar.tx_times)
             a_tx = np.array(radar.tx_amplitudes)
-            print("Atx: ", a_tx)
+            tx = (t_tx, a_tx)
+            print(f"tx_data_radar_{i}", tx)
+
+            ExportData(tx, f"tx_data_radar_{i}").save()
 
             # RX
             t_rx = np.array(radar.rx_times)
             a_rx = np.array(radar.rx_amplitudes)
-            print("Atx: ", a_rx)
+            rx = (t_rx, a_rx)
+            print(f"rx_data_radar_{i}", rx)
 
-            # ordenar (segurança)
-            if len(t_tx) > 0:
-                idx = np.argsort(t_tx)
-                t_tx, a_tx = t_tx[idx], a_tx[idx]
 
-            if len(t_rx) > 0:
-                idx = np.argsort(t_rx)
-                t_rx, a_rx = t_rx[idx], a_rx[idx]
-
-            # converter pra dB
-            eps = 1e-12
-            if len(a_tx) > 0:
-                a_tx = 10 * np.log10(np.maximum(a_tx, eps))
-
-            if len(a_rx) > 0:
-                a_rx = 10 * np.log10(np.maximum(a_rx, eps))
-
-            # plot
-            plt.stem(t_tx, a_tx, linefmt='b-', markerfmt='bo', basefmt=' ')
-            plt.stem(t_rx, a_rx, linefmt='b-', markerfmt='bo', basefmt=' ')
-
-            plt.title(f"Radar {i} - Tempo x Potência (dB)")
-            plt.xlabel("Tempo (s)")
-            plt.ylabel("Potência (dB)")
-            plt.legend()
-            plt.grid()
-
-        plt.show()
+            ExportData(rx, f"rx_data_radar_{i}").save()
+    
 
 
 if __name__ == "__main__":
@@ -259,7 +237,7 @@ if __name__ == "__main__":
         x=0,
         y=0,
         ang_vel_deg_s=90,
-        pattern_type="cosine",
+        pattern_type="sinc",
         Pw=10
     )
     
@@ -271,4 +249,4 @@ if __name__ == "__main__":
     scene.run_simulation(
         pulse_interval_s=3e-6,
     )
-    scene.plot_rx_signal()
+    scene.save_data()

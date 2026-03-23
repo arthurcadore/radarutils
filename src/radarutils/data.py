@@ -17,7 +17,7 @@ class ExportData:
         filename (str): Output file name.
         path (str): Output directory path.
     """
-    def __init__(self, vector, filename, path="../../out"):
+    def __init__(self, vector, filename, path="../../data"):
         # Converts a single vector to a list with one element
         self.vectors = [vector] if isinstance(vector, np.ndarray) else list(vector)
         self.filename = filename
@@ -55,7 +55,7 @@ class ImportData:
         filename (str): Input file name (without extension).
         path (str): Input directory path.
     """
-    def __init__(self, filename, path="../../out"):
+    def __init__(self, filename, path="../../data"):
         self.filename = filename
         self.path = path
 
