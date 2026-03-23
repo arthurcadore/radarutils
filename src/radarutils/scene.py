@@ -93,6 +93,20 @@ class Scene:
 
                     wf.hit_targets.add(i)
 
+    def _check_radar_collision(self, wf, current_t):
+        for radar in self.radars:
+
+            dist = np.sqrt((radar.x - wf.x0)**2 + (radar.y - wf.y0)**2)
+
+            if abs(dist - wf.R) < self.C * self.dt:
+
+                # potência média dos arcos ativos
+                if wf.arcs:
+                    powers = [10**(arc.power_db / 10) for arc in wf.arcs]
+                    power_received = np.mean(powers)
+
+                    radar.receive_wave(power_received, current_t)
+
     def _update_frame(self, frame_idx, fig, ax, collections, pulse_interval_s):
         current_t = self.t_vec[frame_idx]
 
@@ -110,8 +124,7 @@ class Scene:
             radar.phi = (radar.ang_vel * current_t) % 360
 
             if should_pulse:
-                radar.iluminate()
-                radar.waves[-1].t0 = current_t
+                radar.iluminate(current_t, self.dt)
 
             active_waves = []
 
@@ -127,6 +140,8 @@ class Scene:
             active_waves = []
 
             for wf in target.waves:
+                self._check_radar_collision(wf, current_t)
+
                 if self._process_wave(wf, current_t, segments, powers_db):
                     active_waves.append(wf)
 
@@ -156,7 +171,7 @@ class Scene:
 
         return artists
 
-    def run_simulation(self, pulse_interval_s=0.0001, save_mp4=False, mp4_name="simulacao.mp4"):
+    def run_simulation(self, pulse_interval_s=0.0001, save_mp4=True, mp4_name="simulacao.mp4"):
         fig, ax = self._setup_plot()
 
         collections = [None]
@@ -173,10 +188,59 @@ class Scene:
             repeat=False
         )
 
+        if save_mp4:
+            writer = FFMpegWriter(fps=30)
+            self.anim.save(mp4_name, writer=writer)
+            plt.close(fig)
+        else: 
+            plt.show()
 
-        writer = FFMpegWriter(fps=30)
-        self.anim.save(mp4_name, writer=writer)
-        plt.close(fig)
+    def plot_rx_signal(self):
+        import matplotlib.pyplot as plt
+        import numpy as np
+
+        for i, radar in enumerate(self.radars):
+            plt.figure()
+
+            # TX
+            t_tx = np.array(radar.tx_times)
+            a_tx = np.array(radar.tx_amplitudes)
+            print("Atx: ", a_tx)
+
+            # RX
+            t_rx = np.array(radar.rx_times)
+            a_rx = np.array(radar.rx_amplitudes)
+            print("Atx: ", a_rx)
+
+            # ordenar (segurança)
+            if len(t_tx) > 0:
+                idx = np.argsort(t_tx)
+                t_tx, a_tx = t_tx[idx], a_tx[idx]
+
+            if len(t_rx) > 0:
+                idx = np.argsort(t_rx)
+                t_rx, a_rx = t_rx[idx], a_rx[idx]
+
+            # converter pra dB
+            eps = 1e-12
+            if len(a_tx) > 0:
+                a_tx = 10 * np.log10(np.maximum(a_tx, eps))
+
+            if len(a_rx) > 0:
+                a_rx = 10 * np.log10(np.maximum(a_rx, eps))
+
+            # plot
+            plt.stem(t_tx, a_tx, linefmt='b-', markerfmt='bo', basefmt=' ')
+            plt.stem(t_rx, a_rx, linefmt='b-', markerfmt='bo', basefmt=' ')
+
+            plt.title(f"Radar {i} - Tempo x Potência (dB)")
+            plt.xlabel("Tempo (s)")
+            plt.ylabel("Potência (dB)")
+            plt.legend()
+            plt.grid()
+
+        plt.show()
+
 
 if __name__ == "__main__":
     from .radar import Radar
@@ -190,12 +254,12 @@ if __name__ == "__main__":
     )
     
     radar = Radar(
-        res_deg=1,
+        res_deg=10,
         smin_db=-80,
         x=0,
         y=0,
         ang_vel_deg_s=90,
-        pattern_type="sinc",
+        pattern_type="cosine",
         Pw=10
     )
     
@@ -205,5 +269,6 @@ if __name__ == "__main__":
     scene.add_target(t1)
 
     scene.run_simulation(
-        pulse_interval_s=0.000001,
+        pulse_interval_s=3e-6,
     )
+    scene.plot_rx_signal()
