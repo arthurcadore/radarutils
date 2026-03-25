@@ -1,6 +1,6 @@
 [project]
 name = "radarutils"
-version = "1.0.7"
+version = "1.0.8"
 description = "A open-source library for Python 3 providing tools and equations for analysis and simulation of radar systems."
 readme = { file = "README.md", content-type = "text/markdown" }
 authors = [{ name = "Arthur Cadore", email = "arthurbarcella.ita@gmail.com" }]

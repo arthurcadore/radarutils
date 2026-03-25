@@ -9,7 +9,7 @@ from . import core
 from . import radar_components
 from . import visualization
 
-__version__ = "1.0.7"
+__version__ = "1.0.8"
 __author__ = "Arthur Cadore"
 __email__ = "arthurbarcella.ita@gmail.com"
 
