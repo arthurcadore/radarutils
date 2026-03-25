@@ -51,6 +51,16 @@ test:
 	.venv/bin/pytest -v
 	@echo "Testes concluídos!"
 
+generate-plots:
+	@echo "Gerando plots..."
+	@for script in tests/plots/*.py; do \
+		if [ -f "$$script" ]; then \
+			echo "Executando $$script..."; \
+			.venv/bin/python "$$script"; \
+		fi; \
+	done
+	@echo "Plots gerados em ./assets/"
+
 # ==========================================================
 # Documentação: 
 
