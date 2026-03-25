@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.8] - 2026-03-25
+## [1.0.10] - 2026-03-25
 
 - **Package Structure**: Complete reorganization into three main modules:
   - `core/`: Contains basics, data, and env_vars modules
@@ -31,23 +31,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Dependencies**: Added pytest and pytest-cov as development dependencies
 - **Build System**: Enhanced pyproject.toml configuration
 - **Import Structure**: Standardized to use `import radarutils` pattern
+- **CI/CD Push flow to PyPi**: fixed legacy push.
 
-### Usage Examples
-```python
-# New import pattern
-import radarutils
 
-# Core functionality
-range_max = radarutils.core.basics.calc_unambiguous_range(1e-3)
 
-# Radar components
-antenna = radarutils.radar_components.antenna.GainPattern(...)
 
-# Visualization
-radarutils.visualization.animations.animate_wavefront(...)
-```
-
-## [1.0.7] - Previous Versions
+## [1.0.7] - 2026-03-01
 - Initial radar simulation functionality
 - Basic antenna patterns and wave propagation
 - Scene and target modeling
