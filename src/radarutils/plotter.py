@@ -7,6 +7,7 @@ import os
 from typing import Optional, List, Union, Tuple, Dict, Any
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
+from .data import ImportData
 
 # General plot parameters
 mpl.rcParams["pdf.fonttype"] = 42
@@ -292,3 +293,96 @@ class GainPattern3DPlot(BasePlot):
 
         self.ax.grid(True)
         self.apply_ax_style()
+
+class TxRxSignalPlot(BasePlot):
+    """
+    Plotador de sinais TX e RX em dB, recebendo vetores diretamente,
+    seguindo o padrão do plotter.py (herda BasePlot).
+    """
+
+    def __init__(self,
+                 fig: plt.Figure,
+                 grid,
+                 position,
+                 t_tx: np.ndarray,
+                 a_tx: np.ndarray,
+                 t_rx: np.ndarray,
+                 a_rx: np.ndarray,
+                 title: str = "Tempo x Potência (dB)"):
+
+        ax = fig.add_subplot(grid[position])
+
+        super().__init__(
+            ax=ax,
+            title=title,
+            labels=["Tempo (s)", "Potência (dB)"],
+            colors=["blue", "red"],
+            style={"grid": {"alpha": 0.5, "linestyle": "--", "linewidth": 0.7}},
+        )
+
+        self.t_tx = t_tx
+        self.a_tx = a_tx
+        self.t_rx = t_rx
+        self.a_rx = a_rx
+
+        self.plot()
+
+    @staticmethod
+    def _sort_vectors(t: np.ndarray, a: np.ndarray):
+        if len(t) == 0:
+            return t, a
+        idx = np.argsort(t)
+        return t[idx], a[idx]
+
+    def plot(self):
+        # Ordenar
+        t_tx, a_tx = self._sort_vectors(self.t_tx, self.a_tx)
+        t_rx, a_rx = self._sort_vectors(self.t_rx, self.a_rx)
+
+        # Converter para dB
+        a_tx_db = 10 * np.log10(np.maximum(a_tx, 1e-12))
+        a_rx_db = 10 * np.log10(np.maximum(a_rx, 1e-12))
+
+        # Cores
+        color_tx = self.apply_color(0) or "blue"
+        color_rx = self.apply_color(1) or "red"
+        
+        markerline, stemlines, baseline = self.ax.stem(
+            t_tx, a_tx_db, basefmt=" ", label="TX"
+        )
+        plt.setp(markerline, color=color_tx, marker='o')
+        plt.setp(stemlines, color=color_tx)
+
+        markerline, stemlines, baseline = self.ax.stem(
+            t_rx, a_rx_db, basefmt=" ", label="RX"
+        )
+        plt.setp(markerline, color=color_rx, marker='o')
+        plt.setp(stemlines, color=color_rx)
+
+        # Labels
+        self.ax.set_xlabel(self.labels[0])
+        self.ax.set_ylabel(self.labels[1])
+
+        # Estilo geral herdado de BasePlot
+        self.apply_ax_style()
+
+if __name__ == "__main__":
+    tx = ImportData("tx_data_radar_0").load()
+    rx = ImportData("rx_data_radar_0").load()
+
+    t_tx, a_tx = tx
+    t_rx, a_rx = rx
+
+    fig, grid = create_figure(1, 1)
+
+    TxRxSignalPlot(
+        fig=fig,
+        grid=grid,
+        position=(0, 0),
+        t_tx=t_tx,
+        a_tx=a_tx,
+        t_rx=t_rx,
+        a_rx=a_rx
+    )
+
+    plt.show()

@@ -124,14 +124,10 @@ class Scene:
     def _update_frame(self, frame_idx, fig, ax, collections, pulse_interval_s):
         current_t = self.t_vec[frame_idx]
 
-        # 🔥 limpa completamente o frame (corrige GIF)
         ax.clear()
 
-        # divisões principais
         nx = 10
         ny = 10
-
-        # subdivisões
         sub = 5
 
         xticks = np.linspace(self.x_lim[0], self.x_lim[1], nx + 1)
@@ -139,8 +135,6 @@ class Scene:
 
         ax.set_xticks(xticks)
         ax.set_yticks(yticks)
-
-        # minor grid (subdivisão)
         ax.set_xticks(np.linspace(self.x_lim[0], self.x_lim[1], nx*sub + 1), minor=True)
         ax.set_yticks(np.linspace(self.y_lim[0], self.y_lim[1], ny*sub + 1), minor=True)
 
@@ -149,20 +143,15 @@ class Scene:
         ax.set_xlabel("X (m)", color="white")
         ax.set_ylabel("Y (m)", color="white")
 
-        # 🔁 reconfigura o plot
         ax.set_facecolor("black")
         ax.set_xlim(self.x_lim)
         ax.set_ylim(self.y_lim)
         ax.set_aspect('equal')
 
-        # 🔥 restaura eixos e estilo
         ax.tick_params(colors='white')
         for spine in ax.spines.values():
             spine.set_color('white')
 
-        
-
-        # 🔁 redesenha elementos fixos
         for r in self.radars:
             ax.plot(r.x, r.y, 'wo', markersize=5)
 
@@ -173,13 +162,11 @@ class Scene:
         segments = []
         powers_db = []
 
-        # 🔹 controle de pulso
         should_pulse = False
         if current_t - self._last_pulse_time >= pulse_interval_s:
             should_pulse = True
             self._last_pulse_time = current_t
 
-        # 🔹 radars
         for radar in self.radars:
             radar.phi = (radar.ang_vel * current_t) % 360
 
@@ -196,7 +183,6 @@ class Scene:
 
             radar.waves = active_waves
 
-        # 🔹 targets
         for target in self.targets:
             active_waves = []
 
@@ -208,7 +194,6 @@ class Scene:
 
             target.waves = active_waves
 
-        # 🔹 desenha ondas
         if segments:
             norm = np.clip((np.array(powers_db) + 120) / 120, 0, 1)
 
@@ -221,10 +206,8 @@ class Scene:
             ax.add_collection(coll)
             artists.append(coll)
 
-        # 🔹 título
         ax.set_title(f"t = {current_t:.2e}s", color="white")
 
-        # 🔹 finalização
         if frame_idx == len(self.t_vec) - 1:
             self.anim.event_source.stop()
             plt.close(fig)
@@ -302,7 +285,7 @@ if __name__ == "__main__":
     )
     
     radar = Radar(
-        res_deg=10,
+        res_deg=0.1,
         smin_db=-80,
         x=0,
         y=0,

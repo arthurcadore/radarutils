@@ -8,6 +8,36 @@
 import numpy as np
 from .env_vars import LIGHT_SPEED
 
+def calc_unambiguous_range(Tp, c=LIGHT_SPEED):
+    r"""
+    Calculate the maxium radius of detection that doesn't have ambiguity between two (or more) pulses $R_un$. The maximum radius is related with the period of pulses (or with the pulse repetition frequency $PRF$), based on:  
+
+    $$
+    \begin{equation}
+        R_{un} = \frac{T_p \cdot c}{2}
+    \end{equation}
+    $$
+
+    Where: 
+        - $R_{un}$ is the maxium radius of detection without ambiguity. 
+        - $T_p$ is the pulse Repetition period in seconds. 
+        - $c$ is the light speed in the medium. 
+
+    Args: 
+        Tp (float): Pulse repetition period in seconds. 
+        c (integer): Light speed (default $c=299792458$). 
+
+    Returns: 
+        run (float): Radius of maxium detection without ambiguity in meters.
+    """
+    if Tp < 0: 
+        raise ValueError("Pulse Repetition period (Tp) must be a non-negative value in seconds")
+    
+    run = (Tp*c)/2
+
+    return run
+
+
 def effective_area(g, f, c=LIGHT_SPEED):
     r"""
     Calculate the effective area ($A_e$) of an antenna given its gain ($g$) and frequency ($f$). The $A_e$ can be calculated using the following equation:
