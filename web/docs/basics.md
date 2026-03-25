@@ -1,4 +1,4 @@
-::: basics
+::: core.basics
     options:
         extra:
             show_docstring: true

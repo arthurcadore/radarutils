@@ -1,0 +1,67 @@
+/* Custom color scheme for RadarUtils */
+
+:root {
+  /* Primary dark green colors */
+  --md-primary-fg-color: #1b5e20;
+  --md-primary-fg-color--light: #2e7d32;
+  --md-primary-fg-color--dark: #003300;
+  --md-primary-bg-color: #ffffff;
+  --md-primary-bg-color--dark: #1b1b1b;
+  
+  /* Accent green colors */
+  --md-accent-fg-color: #388e3c;
+  --md-accent-fg-color--transparent: rgba(56, 142, 60, 0.1);
+  --md-accent-bg-color: #ffffff;
+  --md-accent-bg-color--dark: #1b1b1b;
+  
+  /* Code block colors */
+  --md-code-fg-color: #ffffff;
+  --md-code-bg-color: #263238;
+  
+  /* Link colors */
+  --md-typeset-a-color: #2e7d32;
+  
+  /* Header colors */
+  --md-default-fg-color--light: rgba(0, 0, 0, 0.87);
+  --md-default-fg-color--dark: rgba(255, 255, 255, 0.9);
+  
+  /* Button hover effects */
+  --md-accent-fg-color--transparent: rgba(56, 142, 60, 0.1);
+}
+
+/* Dark mode adjustments */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #2e7d32;
+  --md-primary-fg-color--light: #388e3c;
+  --md-primary-fg-color--dark: #1b5e20;
+  --md-accent-fg-color: #66bb6a;
+  --md-typeset-a-color: #66bb6a;
+  --md-code-bg-color: #1e1e1e;
+}
+
+/* Additional styling for better contrast */
+.md-typeset .admonition {
+  border-left: 0.4rem solid #2e7d32;
+}
+
+.md-typeset .admonition.title {
+  color: #1b5e20;
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2e7d32;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #1b5e20;
+}

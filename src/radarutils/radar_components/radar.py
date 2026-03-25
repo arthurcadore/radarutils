@@ -17,7 +17,7 @@ class Radar:
             time_unit (str): Time unit for plotting ("ms" by default, can be "s").
             amp_norm (bool): Signal normalization for maximum amplitude
 
-        Examples:
+        Example:
             ![pageplot](../../assets/simulations/simulacao.gif)
         """
 

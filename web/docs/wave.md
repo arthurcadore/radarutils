@@ -1,4 +1,4 @@
-::: wave
+::: radar_components.wave
     options:
         extra:
             show_docstring: true

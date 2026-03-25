@@ -1,4 +1,4 @@
-::: radar
+::: radar_components.radar
     options:
         extra:
             show_docstring: true

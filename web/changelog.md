@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.10] - 2026-03-25
 
+### News
 - **Package Structure**: Complete reorganization into three main modules:
   - `core/`: Contains basics, data, and env_vars modules
   - `radar_components/`: Contains antenna, scene, target, wave, and radar modules

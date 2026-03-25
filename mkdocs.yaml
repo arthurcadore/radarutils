@@ -12,10 +12,14 @@ theme:
   favicon: assets/icon.svg
   palette:
     - scheme: default
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - scheme: slate
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -42,15 +46,15 @@ extra_javascript:
   - site/hide_sidebar.js
   
 extra_css:
+  - stylesheets/custom.css
   - site/styles.css
 
 nav:
   - Home: index.md
-  # - Installation: 
-  #     - Installation pip: guide_pip.md
-  #     - Installation manual: guide.md
-  #     - Changelog: changelog.md
-  - Equations: 
+  - Installation: 
+      - Installation pip: guide_pip.md
+      - Changelog: changelog.md
+  - Core: 
       - Radar Basics: docs/basics.md
   - Simulations:
       - Basic Components: 
@@ -58,7 +62,6 @@ nav:
         - Antenna: docs/antenna.md
       - Radar And Target: 
         - Radar: docs/radar.md
-      
   - Plots:
       - Plotter: docs/plotter.md
 
@@ -73,17 +76,6 @@ plugins:
             show_submodules: true
             members_order: source
 
-badges: 
-  - name: Stars 
-    image: https://img.shields.io/github/stars/arthurcadore/radarutils?style=social 
-    link: https://github.com/arthurcadore/radarutils/stargazers 
-  - name: Forks 
-    image: https://img.shields.io/github/forks/arthurcadore/radarutils?style=social 
-    link: https://github.com/arthurcadore/radarutils/network/members 
-  - name: Release
-    image: https://img.shields.io/github/v/release/arthurcadore/radarutils?style=flat
-    link: https://github.com/arthurcadore/radarutils/releases/latest
-    
 markdown_extensions:
   - pymdownx.arithmatex:  
       generic: true

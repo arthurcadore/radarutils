@@ -1,4 +1,4 @@
-::: plotter
+::: visualization.plotter
     options:
         extra:
             show_docstring: true

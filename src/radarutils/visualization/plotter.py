@@ -138,8 +138,8 @@ class BasePlot:
 
 class GainPatternPlot(BasePlot):
     r"""
-    Examples:
-        - 4 Different Antennas: ![pageplot](../../assets/plots/example_antenna_patterns.svg)
+    Example:
+        ![pageplot](../../assets/plots/example_antenna_patterns.svg)
     
     Args:
         ax (plt.Axes): Matplotlib `Axes` object. 

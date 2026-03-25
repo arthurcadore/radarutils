@@ -1,4 +1,4 @@
-::: antenna
+::: radar_components.antenna
     options:
         extra:
             show_docstring: true
