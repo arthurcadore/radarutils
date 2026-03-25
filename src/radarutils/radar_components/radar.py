@@ -69,7 +69,7 @@ class Radar:
         self.rx_amplitudes.append(power_received)
 
 if __name__ == "__main__":
-    from .animations import animate_radar
+    from ..visualization.animations import animate_radar
 
     radar = Radar(5, 1, -80, 1, "sinc")
     R_values = np.linspace(1, 100, 100)

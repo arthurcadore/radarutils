@@ -7,7 +7,6 @@ import os
 from typing import Optional, List, Union, Tuple, Dict, Any
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
-from .data import ImportData
 
 # General plot parameters
 mpl.rcParams["pdf.fonttype"] = 42
@@ -367,6 +366,8 @@ class TxRxSignalPlot(BasePlot):
         self.apply_ax_style()
 
 if __name__ == "__main__":
+    from ..core.data import ImportData
+    
     tx = ImportData("tx_data_radar_0").load()
     rx = ImportData("rx_data_radar_0").load()
 

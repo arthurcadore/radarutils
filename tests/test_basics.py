@@ -11,7 +11,7 @@ def test_calc_unambiguous_range():
     Tp = 1e-3  # 1 ms period
     c = 3e8    # Speed of light
     
-    result = radarutils.basics.calc_unambiguous_range(Tp, c)
+    result = radarutils.core.basics.calc_unambiguous_range(Tp, c)
     expected = (Tp * c) / 2
     assert np.isclose(result, expected, rtol=1e-10)
     assert result > 0
@@ -20,7 +20,7 @@ def test_calc_unambiguous_range():
 def test_calc_unambiguous_range_negative():
     """Test that negative period raises ValueError."""
     with pytest.raises(ValueError):
-        radarutils.basics.calc_unambiguous_range(-1.0)
+        radarutils.core.basics.calc_unambiguous_range(-1.0)
 
 
 def test_effective_area():
@@ -29,7 +29,7 @@ def test_effective_area():
     frequency = 10e9  # 10 GHz
     c = 3e8
     
-    result = radarutils.basics.effective_area(gain_db, frequency, c)
+    result = radarutils.core.basics.effective_area(gain_db, frequency, c)
     wavelength = c / frequency
     gain_linear = 10 ** (gain_db / 10)  # Convert dB to linear
     expected = (gain_linear * wavelength**2) / (4 * np.pi)
@@ -46,7 +46,7 @@ def test_power_received():
     Ae = 1.0   # 1 m^2 effective area
     
     try:
-        result = radarutils.basics.power_received(Pt, Gt, R, Cs, Ae)
+        result = radarutils.core.basics.power_received(Pt, Gt, R, Cs, Ae)
         assert isinstance(result, (int, float, np.number))
         assert result > 0
     except Exception:
@@ -57,13 +57,13 @@ def test_radar_calculator_class():
     """Test RadarCalculator class functionality."""
     try:
         # Test initialization
-        calc = radarutils.basics.RadarCalculator(R_max=1000, Pt=1000, Cs=1.0, Pr_min=1e-10)
+        calc = radarutils.core.basics.RadarCalculator(R_max=1000, Pt=1000, Cs=1.0, Pr_min=1e-10)
         assert calc is not None
         assert hasattr(calc, 'R_max')
         assert hasattr(calc, 'Pt')
         
         # Test class methods
-        calc2 = radarutils.basics.RadarCalculator.from_range_equation(Pt=1000, Gt=100, Cs=1.0, Ae=1.0, Pr_min=1e-10)
+        calc2 = radarutils.core.basics.RadarCalculator.from_range_equation(Pt=1000, Gt=100, Cs=1.0, Ae=1.0, Pr_min=1e-10)
         assert calc2 is not None
         
     except Exception:
@@ -74,13 +74,13 @@ def test_array_inputs():
     """Test that functions work with different input types."""
     # Test with float
     period_float = 1e-3
-    range_float = radarutils.basics.calc_unambiguous_range(period_float)
+    range_float = radarutils.core.basics.calc_unambiguous_range(period_float)
     expected_float = (period_float * 299792458) / 2  # Use exact speed of light
     assert np.isclose(range_float, expected_float, rtol=1e-10)
     
     # Test with integer
     period_int = 1  # 1 second
-    range_int = radarutils.basics.calc_unambiguous_range(period_int)
+    range_int = radarutils.core.basics.calc_unambiguous_range(period_int)
     expected_int = (period_int * 299792458) / 2  # Use exact speed of light
     assert np.isclose(range_int, expected_int, rtol=1e-10)
     
@@ -89,8 +89,8 @@ def test_array_inputs():
     freq1 = 1e9
     freq2 = 10e9
     
-    ae1 = radarutils.basics.effective_area(gain_db, freq1)
-    ae2 = radarutils.basics.effective_area(gain_db, freq2)
+    ae1 = radarutils.core.basics.effective_area(gain_db, freq1)
+    ae2 = radarutils.core.basics.effective_area(gain_db, freq2)
     
     # Higher frequency should result in smaller effective area
     assert ae2 < ae1
@@ -99,7 +99,7 @@ def test_array_inputs():
 
 def test_physical_constants():
     """Test that physical constants are reasonable."""
-    from radarutils.env_vars import LIGHT_SPEED
+    from radarutils.core.env_vars import LIGHT_SPEED
     assert LIGHT_SPEED == 299792458  # Exact value of speed of light in m/s
 
 
@@ -110,14 +110,14 @@ def test_frequency_wavelength_relationship():
     c = 299792458
     
     # Calculate effective area
-    ae = radarutils.basics.effective_area(gain_db, frequency, c)
+    ae = radarutils.core.basics.effective_area(gain_db, frequency, c)
     
     # Verify it's positive and reasonable
     assert ae > 0
     
     # Test with different frequency
     frequency2 = 20e9  # Double frequency
-    ae2 = radarutils.basics.effective_area(gain_db, frequency2, c)
+    ae2 = radarutils.core.basics.effective_area(gain_db, frequency2, c)
     
     # At double frequency, wavelength is half, so effective area should be quarter
     # (since Ae is proportional to wavelength^2)

@@ -4,8 +4,8 @@ import numpy as np
 from matplotlib.collections import LineCollection
 from matplotlib.animation import FuncAnimation
 from matplotlib.collections import LineCollection
-from .wave import Wavefront
-from .radar import Radar
+from ..radar_components.wave import Wavefront
+from ..radar_components.radar import Radar
 
 def animate_wavefront(wavefront_template: Wavefront, R_values, pulse_interval=10):
     fig, ax = plt.subplots(figsize=(8, 8))

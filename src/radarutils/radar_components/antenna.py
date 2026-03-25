@@ -1,8 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from .plotter import create_figure, save_figure, GainPatternPlot, GainPattern3DPlot
-
 class GainPattern:
     def __init__(self, res_deg, pattern_type="ideal", gain_dBi=10, beamw_deg=60):
         
@@ -238,6 +236,8 @@ class GainPattern:
         return H_plane, V_plane
 
 if __name__ == "__main__":
+    from ..visualization.plotter import create_figure, save_figure, GainPatternPlot, GainPattern3DPlot
+    
     gp1 = GainPattern(
         res_deg=1,
         pattern_type="isotropic",

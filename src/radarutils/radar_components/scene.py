@@ -5,7 +5,7 @@ from matplotlib.animation import FFMpegWriter
 from matplotlib.collections import LineCollection
 import matplotlib.cm as cm
 
-from .data import ExportData, ImportData
+from ..core.data import ExportData, ImportData
 
 
 class Scene:

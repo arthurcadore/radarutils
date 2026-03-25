@@ -87,7 +87,7 @@ class Wavefront:
 
         
 if __name__ == "__main__":
-    from .animations import animate_wavefront
+    from ..visualization.animations import animate_wavefront
     gp = GainPattern(10, "cosine", 10, 30)
     wf = Wavefront(1, gp, -100, 0)
 

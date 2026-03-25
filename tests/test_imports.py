@@ -9,55 +9,44 @@ def test_import_radarutils():
     assert radarutils is not None
 
 
-def test_import_basics():
-    """Test that basics module can be imported."""
+def test_import_core():
+    """Test that core module can be imported."""
     import radarutils
-    assert radarutils.basics is not None
+    assert radarutils.core is not None
 
 
-def test_import_antenna():
-    """Test that antenna module can be imported."""
+def test_import_core_modules():
+    """Test that core submodules can be imported."""
     import radarutils
-    assert radarutils.antenna is not None
+    assert radarutils.core.basics is not None
+    assert radarutils.core.data is not None
+    assert radarutils.core.env_vars is not None
 
 
-def test_import_radar():
-    """Test that radar module can be imported."""
+def test_import_radar_components():
+    """Test that radar_components module can be imported."""
     import radarutils
-    assert radarutils.radar is not None
+    assert radarutils.radar_components is not None
 
 
-def test_import_target():
-    """Test that target module can be imported."""
+def test_import_radar_components_modules():
+    """Test that radar_components submodules can be imported."""
     import radarutils
-    assert radarutils.target is not None
+    assert radarutils.radar_components.antenna is not None
+    assert radarutils.radar_components.scene is not None
+    assert radarutils.radar_components.target is not None
+    assert radarutils.radar_components.wave is not None
+    assert radarutils.radar_components.radar is not None
 
 
-def test_import_wave():
-    """Test that wave module can be imported."""
+def test_import_visualization():
+    """Test that visualization module can be imported."""
     import radarutils
-    assert radarutils.wave is not None
+    assert radarutils.visualization is not None
 
 
-def test_import_scene():
-    """Test that scene module can be imported."""
+def test_import_visualization_modules():
+    """Test that visualization submodules can be imported."""
     import radarutils
-    assert radarutils.scene is not None
-
-
-def test_import_plotter():
-    """Test that plotter module can be imported."""
-    import radarutils
-    assert radarutils.plotter is not None
-
-
-def test_import_animations():
-    """Test that animations module can be imported."""
-    import radarutils
-    assert radarutils.animations is not None
-
-
-def test_import_data():
-    """Test that data module can be imported."""
-    import radarutils
-    assert radarutils.data is not None
+    assert radarutils.visualization.animations is not None
+    assert radarutils.visualization.plotter is not None
