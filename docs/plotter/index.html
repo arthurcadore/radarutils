@@ -69,7 +69,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -124,20 +124,20 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
     
-      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
       </label>
     
   
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
     
-      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
       </label>
     
   
@@ -563,6 +563,29 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core/power/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Power
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -925,9 +948,36 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#visualization.plotter.TimePlot" class="md-nav__link">
+    <span class="md-ellipsis">
+      TimePlot
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#visualization.plotter.FrequencyPlot" class="md-nav__link">
+    <span class="md-ellipsis">
+      FrequencyPlot
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#visualization.plotter.TxRxSignalPlot" class="md-nav__link">
     <span class="md-ellipsis">
       TxRxSignalPlot
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#visualization.plotter.FrequencyResponsePlot" class="md-nav__link">
+    <span class="md-ellipsis">
+      FrequencyResponsePlot
     </span>
   </a>
   
@@ -1362,6 +1412,362 @@
 
 
 
+<h2 id="visualization.plotter.TimePlot" class="doc doc-heading">
+            <code>TimePlot</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="&lt;code&gt;BasePlot&lt;/code&gt; (&lt;code&gt;visualization.plotter.BasePlot&lt;/code&gt;)" href="#visualization.plotter.BasePlot">BasePlot</a></code></p>
+
+
+        <p>Class for plotting signals in the time domain, receiving a time vector <span class="arithmatex">\(t\)</span>, and a list of signals <span class="arithmatex">\(s(t)\)</span>.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>fig</code>
+            </td>
+            <td>
+                  <code><span title="matplotlib.pyplot.Figure">Figure</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Figure object</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>grid</code>
+            </td>
+            <td>
+                  <code><span title="matplotlib.gridspec.GridSpec">GridSpec</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>GridSpec object</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>pos</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Plot position</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>t</code>
+            </td>
+            <td>
+                  <code><span title="numpy.ndarray">ndarray</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Time vector</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>signals</code>
+            </td>
+            <td>
+                  <code><span title="typing.Union">Union</span>[<span title="numpy.ndarray">ndarray</span>, <span title="typing.List">List</span>[<span title="numpy.ndarray">ndarray</span>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Signal or list of signals <span class="arithmatex">\(s(t)\)</span>.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>time_unit</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Time unit for plotting ("ms" by default, can be "s").</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;ms&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>amp_norm</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Signal normalization for maximum amplitude</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Examples:</span></p>
+    <ul>
+<li>Modulator Time Domain Example: <img alt="pageplot" src="assets/example_modulator_time.svg" /></li>
+<li>AWGN addition Time Domain Example: <img alt="pageplot" src="assets/example_noise_time_ebn0.svg" /></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="visualization.plotter.FrequencyPlot" class="doc doc-heading">
+            <code>FrequencyPlot</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="&lt;code&gt;BasePlot&lt;/code&gt; (&lt;code&gt;visualization.plotter.BasePlot&lt;/code&gt;)" href="#visualization.plotter.BasePlot">BasePlot</a></code></p>
+
+
+        <p>Class for plotting signals in the frequency domain, receiving a sampling frequency <span class="arithmatex">\(f_s\)</span> and a signal <span class="arithmatex">\(s(t)\)</span> and performing the Fourier transform of the signal, according to the expression below. </p>
+<div class="arithmatex">\[
+\begin{equation}
+    S(f) = \mathcal{F}\{s(t)\}
+\end{equation}
+\]</div>
+
+
+<details class="where" open>
+  <summary>Where</summary>
+  <ul>
+<li><span class="arithmatex">\(S(f)\)</span>: Signal in the frequency domain.</li>
+<li><span class="arithmatex">\(s(t)\)</span>: Signal in the time domain.</li>
+<li><span class="arithmatex">\(\mathcal{F}\)</span>: Fourier transform.</li>
+</ul>
+</details>
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>fig</code>
+            </td>
+            <td>
+                  <code><span title="matplotlib.pyplot.Figure">Figure</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Figure object</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>grid</code>
+            </td>
+            <td>
+                  <code><span title="matplotlib.gridspec.GridSpec">GridSpec</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>GridSpec object</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>pos</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Plot position</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>fs</code>
+            </td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Sampling frequency</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>signal</code>
+            </td>
+            <td>
+                  <code><span title="numpy.ndarray">ndarray</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Signal to be plotted</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>fc</code>
+            </td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Central frequency</p>
+              </div>
+            </td>
+            <td>
+                  <code>0.0</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Examples:</span></p>
+    <ul>
+<li>Modulator Frequency Domain Example: <img alt="pageplot" src="assets/example_modulator_freq.svg" /></li>
+<li>AWGN addition Frequency Domain Example: <img alt="pageplot" src="assets/example_noise_freq_ebn0.svg" /></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
 <h2 id="visualization.plotter.TxRxSignalPlot" class="doc doc-heading">
             <code>TxRxSignalPlot</code>
 
@@ -1376,6 +1782,268 @@
 
         <p>Plotador de sinais TX e RX em dB, recebendo vetores diretamente,
 seguindo o padrão do plotter.py (herda BasePlot).</p>
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="visualization.plotter.FrequencyResponsePlot" class="doc doc-heading">
+            <code>FrequencyResponsePlot</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="&lt;code&gt;BasePlot&lt;/code&gt; (&lt;code&gt;visualization.plotter.BasePlot&lt;/code&gt;)" href="#visualization.plotter.BasePlot">BasePlot</a></code></p>
+
+
+        <p>Plot the frequency response of a filter from its coefficients (b, a). 
+Calculates the Discrete Fourier Transform of the impulse response using <code>scipy.signal.freqz</code>.</p>
+<div class="arithmatex">\[
+    H(f) = \sum_{n=0}^{N} b_n e^{-j 2 \pi f n} \Big/ \sum_{m=0}^{M} a_m e^{-j 2 \pi f m}
+\]</div>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>fig</code>
+            </td>
+            <td>
+                  <code><span title="matplotlib.pyplot.Figure">Figure</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Figure of the plot</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>grid</code>
+            </td>
+            <td>
+                  <code><span title="matplotlib.gridspec.GridSpec">GridSpec</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>GridSpec of the plot</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>pos</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Position in the GridSpec</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>b</code>
+            </td>
+            <td>
+                  <code><span title="numpy.ndarray">ndarray</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Coefficients of the numerator of the filter</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>a</code>
+            </td>
+            <td>
+                  <code><span title="numpy.ndarray">ndarray</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Coefficients of the denominator of the filter</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>fs</code>
+            </td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Sampling frequency</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>f_cut</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Cut-off frequency of the filter (Hz)</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>xlim</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="typing.Tuple">Tuple</span>[<span title="float">float</span>, <span title="float">float</span>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Limit of the x-axis (Hz)</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>worN</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Number of points for the Discrete Fourier Transform</p>
+              </div>
+            </td>
+            <td>
+                  <code>1024</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>show_phase</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If <code>True</code>, plots the phase of the frequency response</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>xlabel</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Label of the x-axis</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;Frequency (Hz)&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>ylabel</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Label of the y-axis</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;Magnitude (dB)&#39;</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Examples:</span></p>
+    <ul>
+<li>Frequency Domain Plot Example: <img alt="pageplot" src="assets/example_lpf_freq_response.svg" /></li>
+</ul>
 
 
 
@@ -1513,7 +2181,7 @@ seguindo o padrão do plotter.py (herda BasePlot).</p>
 
 
 <h2 id="visualization.plotter.save_figure" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">save_figure</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;../../assets&#39;</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">save_figure</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;../../../assets&#39;</span><span class="p">)</span></code>
 
 </h2>
 
@@ -1579,7 +2247,7 @@ seguindo o padrão do plotter.py (herda BasePlot).</p>
               </div>
             </td>
             <td>
-                  <code>&#39;../../assets&#39;</code>
+                  <code>&#39;../../../assets&#39;</code>
             </td>
           </tr>
       </tbody>
