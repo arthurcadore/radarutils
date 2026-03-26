@@ -56,6 +56,7 @@ nav:
       - Changelog: changelog.md
   - Core: 
       - Radar Basics: docs/basics.md
+      - Power: docs/core/power.md
   - Simulations:
       - Basic Components: 
         - Wave Front: docs/wave.md

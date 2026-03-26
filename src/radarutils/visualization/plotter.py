@@ -4,9 +4,15 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import scienceplots 
 import os
+import numpy as np
+
 from typing import Optional, List, Union, Tuple, Dict, Any
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
+from scipy.signal import freqz
+from ..core.power import mag_to_db
+from ..core.env_vars import *
+
 
 # General plot parameters
 mpl.rcParams["pdf.fonttype"] = 42
@@ -48,7 +54,7 @@ def create_figure(rows: int, cols: int, figsize: Tuple[int, int] = (16, 9)) -> T
     grid = gridspec.GridSpec(rows, cols, figure=fig)
     return fig, grid
 
-def save_figure(fig: plt.Figure, filename: str, out_dir: str = "../../assets") -> None:
+def save_figure(fig: plt.Figure, filename: str, out_dir: str = "../../../assets") -> None:
     r"""
     Saves the figure in `<out_dir>/<filename>` from the script root directory. 
     
@@ -293,6 +299,160 @@ class GainPattern3DPlot(BasePlot):
         self.ax.grid(True)
         self.apply_ax_style()
 
+class TimePlot(BasePlot):
+    r"""
+    Class for plotting signals in the time domain, receiving a time vector $t$, and a list of signals $s(t)$.
+
+    Args:
+        fig (plt.Figure): Figure object
+        grid (gridspec.GridSpec): GridSpec object
+        pos (int): Plot position
+        t (np.ndarray): Time vector
+        signals (Union[np.ndarray, List[np.ndarray]]): Signal or list of signals $s(t)$.
+        time_unit (str): Time unit for plotting ("ms" by default, can be "s").
+        amp_norm (bool): Signal normalization for maximum amplitude
+
+    Examples:
+        - Modulator Time Domain Example: ![pageplot](assets/example_modulator_time.svg)
+        - AWGN addition Time Domain Example: ![pageplot](assets/example_noise_time_ebn0.svg)
+    """
+    def __init__(self,
+                 fig: plt.Figure,
+                 grid: gridspec.GridSpec,
+                 pos,
+                 t: np.ndarray,
+                 signals: Union[np.ndarray, List[np.ndarray]],
+                 time_unit: str = "ms",
+                 amp_norm: bool = False,
+                 **kwargs) -> None:
+        ax = fig.add_subplot(grid[pos])
+        super().__init__(ax, **kwargs)
+
+        self.amp_norm = amp_norm
+
+        # Copy the input signals to avoid modifying the original signal
+        original_signals = signals if isinstance(signals, (list, tuple)) else [signals]
+        self.signals = [sig.copy() for sig in original_signals]
+
+        # Time unit
+        self.time_unit = time_unit.lower()
+        if self.time_unit == "ms":
+            self.t = t * 1e3
+        else:
+            self.t = t
+
+        # Signal or list of signals
+        if self.labels is None:
+            self.labels = [f"Signal {i+1}" for i in range(len(self.signals))]
+
+    def plot(self) -> None:
+        # Normalization
+        if self.amp_norm:
+            max_val = np.max(np.abs(np.concatenate(self.signals)))
+            if max_val > 0:
+                f = 1 / max_val
+                for i, sig in enumerate(self.signals):
+                    self.signals[i] *= f
+
+        # Plot
+        line_kwargs = {"linewidth": 2, "alpha": 1.0}
+        line_kwargs.update(self.style.get("line", {}))
+        for i, sig in enumerate(self.signals):
+            color = self.apply_color(i)
+            if color is not None:
+                self.ax.plot(self.t, sig, label=self.labels[i], color=color, **line_kwargs)
+            else:
+                self.ax.plot(self.t, sig, label=self.labels[i], **line_kwargs)
+
+        # Labels
+        xlabel = r"Time (ms)" if self.time_unit == "ms" else r"Time ($s$)"
+        self.ax.set_xlabel(xlabel)
+        self.ax.set_ylabel(r"Amplitude")
+        self.apply_ax_style()
+
+
+class FrequencyPlot(BasePlot):
+    r"""
+    Class for plotting signals in the frequency domain, receiving a sampling frequency $f_s$ and a signal $s(t)$ and performing the Fourier transform of the signal, according to the expression below. 
+
+    $$
+    \begin{equation}
+        S(f) = \mathcal{F}\{s(t)\}
+    \end{equation}
+    $$
+
+    Where:
+        - $S(f)$: Signal in the frequency domain.
+        - $s(t)$: Signal in the time domain.
+        - $\mathcal{F}$: Fourier transform.
+    
+    Args:
+        fig (plt.Figure): Figure object
+        grid (gridspec.GridSpec): GridSpec object
+        pos (int): Plot position
+        fs (float): Sampling frequency
+        signal (np.ndarray): Signal to be plotted
+        fc (float): Central frequency
+
+    Examples:
+        - Modulator Frequency Domain Example: ![pageplot](assets/example_modulator_freq.svg)
+        - AWGN addition Frequency Domain Example: ![pageplot](assets/example_noise_freq_ebn0.svg)
+    """
+    def __init__(self,
+                 fig: plt.Figure,
+                 grid: gridspec.GridSpec,
+                 pos,
+                 fs: float,
+                 signal: np.ndarray,
+                 fc: float = 0.0,
+                 bandwidth: float | None = None,
+                 **kwargs) -> None:
+        ax = fig.add_subplot(grid[pos])
+        super().__init__(ax, **kwargs)
+        self.fs = fs
+        self.fc = fc
+        self.signal = signal
+        self.bandwidth = bandwidth
+
+    def plot(self) -> None:
+        # Fourier transform
+        freqs = np.fft.fftshift(np.fft.fftfreq(len(self.signal), d=1 / self.fs))
+        fft_signal = np.fft.fftshift(np.fft.fft(self.signal))
+        y = mag_to_db(fft_signal)
+
+        # Frequency scale
+        freqs = freqs / 1000
+        fc = self.fc / 1000
+        bw = self.bandwidth / 1000 if self.bandwidth is not None else None
+        self.ax.set_xlabel(r"Frequency (kHz)")
+        scale_khz = True
+
+        # Plot main curve
+        line_kwargs = {"linewidth": 1, "alpha": 1.0}
+        line_kwargs.update(self.style.get("line", {}))
+        color = self.apply_color(0)
+        label = self.labels[0] if self.labels else None
+
+        if color is not None:
+            self.ax.plot(freqs, y, label=label, color=color, **line_kwargs)
+        else:
+            self.ax.plot(freqs, y, label=label, **line_kwargs)
+
+        # Plot bandwidth markers (if provided)
+        if bw is not None and bw > 0:
+            for f in [fc - bw, fc + bw]:
+                self.ax.axvline(f, color=COLOR_AUX2, linestyle="--", linewidth=2, alpha=0.8)
+            unit = "kHz" if scale_khz else "Hz"
+            self.ax.plot([], [], color=COLOR_AUX2, linestyle="--", label=f"$W$ = {self.bandwidth/1000:.3f} {unit}")
+
+        # Labels
+        self.ax.set_ylabel(r"Magnitude (dB)")
+        if self.ylim is None:
+            self.ax.set_ylim(-60, 5)
+
+        self.apply_ax_style()
+
+
 class TxRxSignalPlot(BasePlot):
     """
     Plotador de sinais TX e RX em dB, recebendo vetores diretamente,
@@ -387,3 +547,90 @@ if __name__ == "__main__":
     )
 
     plt.show()
+    
+
+class FrequencyResponsePlot(BasePlot):
+    r"""
+    Plot the frequency response of a filter from its coefficients (b, a). 
+    Calculates the Discrete Fourier Transform of the impulse response using `scipy.signal.freqz`.
+
+    $$
+        H(f) = \sum_{n=0}^{N} b_n e^{-j 2 \pi f n} \Big/ \sum_{m=0}^{M} a_m e^{-j 2 \pi f m}
+    $$
+
+    Args:
+        fig (plt.Figure): Figure of the plot
+        grid (gridspec.GridSpec): GridSpec of the plot
+        pos (int): Position in the GridSpec
+        b (np.ndarray): Coefficients of the numerator of the filter
+        a (np.ndarray): Coefficients of the denominator of the filter
+        fs (float): Sampling frequency
+        f_cut (Optional[float]): Cut-off frequency of the filter (Hz)
+        xlim (Optional[Tuple[float, float]]): Limit of the x-axis (Hz)
+        worN (int): Number of points for the Discrete Fourier Transform
+        show_phase (bool): If `True`, plots the phase of the frequency response
+        xlabel (str): Label of the x-axis
+        ylabel (str): Label of the y-axis
+
+    Examples:
+        - Frequency Domain Plot Example: ![pageplot](assets/example_lpf_freq_response.svg)
+    """
+    def __init__(self,
+                 fig: plt.Figure,
+                 grid: gridspec.GridSpec,
+                 pos,
+                 b: np.ndarray,
+                 a: np.ndarray,
+                 fs: float,
+                 f_cut: float = None,
+                 xlim: tuple = None,
+                 worN: int = 1024,
+                 show_phase: bool = False,
+                 xlabel: str = r"Frequency (Hz)",
+                 ylabel: str = r"Magnitude (dB)",
+                 **kwargs) -> None:
+
+        ax = fig.add_subplot(grid[pos])
+        super().__init__(ax, **kwargs)
+        self.b = b
+        self.a = a
+        self.fs = fs
+        self.f_cut = f_cut
+        self.xlim = xlim
+        self.worN = worN
+        self.show_phase = show_phase
+        self.xlabel = xlabel
+        self.ylabel = ylabel    
+
+    def plot(self) -> None:
+        # Calculate frequency response
+        w, h = freqz(self.b, self.a, worN=self.worN, fs=self.fs)
+        magnitude = mag_to_db(h)
+
+        # Plot
+        line_kwargs = {"linewidth": 2, "alpha": 1.0}
+        line_kwargs.update(self.style.get("line", {}))
+        color = self.apply_color(0) or COLOR_IMPULSE
+        label = self.labels[0] if self.labels else "$H(f)$"
+        self.ax.plot(w, magnitude, color=color, label=label, **line_kwargs)
+
+        # Plot the phase
+        if self.show_phase:
+            ax2 = self.ax.twinx()
+            phase = np.unwrap(np.angle(h))
+            ax2.plot(w, phase, color=LPF_PHASE_COLOR, linestyle="--", linewidth=1.5, label="Phase ($rad$)")
+            ax2.set_ylabel("Phase ($rad$)")
+
+        # Add vertical bar at cut-off frequency
+        if self.f_cut is not None:
+            self.ax.axvline(self.f_cut, color=LPF_CUT_OFF_COLOR, linestyle="--", linewidth=2, label=f"$f_c$ = {self.f_cut} Hz")
+
+        # Adjust axis
+        if self.xlim is not None:
+            self.ax.set_xlim(self.xlim)
+        self.ax.set_ylim(-60, 5)
+
+        # Adjust labels
+        self.ax.set_xlabel(self.xlabel)
+        self.ax.set_ylabel(self.ylabel)
+        self.apply_ax_style()
