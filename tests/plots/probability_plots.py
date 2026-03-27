@@ -7,24 +7,30 @@ import os
 import sys
 from pathlib import Path
 from radarutils.core.env_vars import *
-from radarutils.core.probability import noise_awgn
-from radarutils.visualization.plotter import GaussianNoisePlot, create_figure, save_figure
+from radarutils.core.probability import NoiseAWGN
+from radarutils.visualization.plotter import PDFplot, create_figure, save_figure
 
 def awgn():
 
-    awgn = noise_awgn(n=1000000, sigma=0.3, seed=10)
+    awgn = NoiseAWGN(n=1000000, sigma=0.5, seed=10)
+
+    pdf = awgn.pdf_values
+    x = awgn.x
 
     fig_gauss, grid_gauss = create_figure(1, 1, figsize=(16, 9))
-    GaussianNoisePlot(
+    PDFplot(
         fig_gauss, grid_gauss, (0,0),
+        pdf_x=x,
+        pdf_y=pdf,
+        samples=awgn.samples,
         variance=awgn.variance_value,
         colors=NOISE_DENSITY_COLOR,
-        title=(NOISE_DENSITY_TITLE + f" - $\\sigma$ {awgn.sigma}"),
+        title=(f"$PDF - Gaussian Noise - \\sigma$ {awgn.sigma}"),
         legend=[r"$p(x)$"],
-        ylim=(-2,2),
-        span=200,
-    ).plot()
-    save_figure(fig_gauss, "example_noise_gaussian_sigma.pdf")
+        ylim=NOISE_DENSITY_YLIM,
+        hist=True,
+    )
+    save_figure(fig_gauss, "pdf-gaussian-noise.pdf")
 
 
 if __name__ == "__main__":
