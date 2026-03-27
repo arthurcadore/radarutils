@@ -207,7 +207,9 @@ class GainPatternPlot(BasePlot):
         # Ajusta escala radial com base nos dois vetores ou valores fornecidos
         min_gain = self.r_min if self.r_min is not None else min(np.min(Hgain), np.min(Vgain))
         max_gain = self.r_max if self.r_max is not None else max(np.max(Hgain), np.max(Vgain))
-        self.ax.set_ylim(min_gain, max_gain)
+        # Only set ylim if min and max are different to avoid warning
+        if min_gain != max_gain:
+            self.ax.set_ylim(min_gain, max_gain)
 
         self.apply_ax_style()
 
@@ -548,7 +550,7 @@ if __name__ == "__main__":
 
     plt.show()
     
-
+#TODO: add phase plot into response. 
 class FrequencyResponsePlot(BasePlot):
     r"""
     Plot the frequency response of a filter from its coefficients (b, a). 
@@ -633,4 +635,80 @@ class FrequencyResponsePlot(BasePlot):
         # Adjust labels
         self.ax.set_xlabel(self.xlabel)
         self.ax.set_ylabel(self.ylabel)
+        self.apply_ax_style()
+
+
+class GaussianNoisePlot(BasePlot):
+    r"""
+    Class to plot the probability density $p(x)$ of a given variance $\sigma^2$, following the expression below. 
+
+    $$
+    p(x) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{x^2}{2\sigma^2}\right)
+    $$
+
+    Where: 
+        - $p(x)$: Probability density of the noise.
+        - $\sigma^2$: Variance of the noise.
+        - $x$: Amplitude of the noise.
+
+    Args:
+        fig (plt.Figure): Figure of the plot
+        grid (gridspec.GridSpec): GridSpec of the plot
+        pos (int): Position of the plot in the GridSpec
+        variance (float): Variance of the noise
+        num_points (int): Number of points for the gaussian curve
+        legend (str): Legend of the plot
+        xlabel (str): Label of the x-axis
+        ylabel (str): Label of the y-axis
+        xlim (Optional[Tuple[float, float]]): Limit of the x-axis
+        span (int): Span of the plot
+
+    Examples:
+        - Noise Density Plot Example: ![pageplot](assets/example_noise_gaussian_ebn0.svg)
+    """
+    def __init__(self,
+                 fig: plt.Figure,
+                 grid: gridspec.GridSpec,
+                 pos,
+                 variance: float,
+                 num_points: int = 5000,
+                 legend: str = "$p(x)$",
+                 xlabel: str = "Amplitude ($x$)",
+                 ylabel: str = "Probability Density $p(x)$",
+                 ylim: Optional[Tuple[float, float]] = None,
+                 span: int = 100,
+                 **kwargs) -> None:
+        ax = fig.add_subplot(grid[pos])
+        super().__init__(ax, **kwargs)
+        self.variance = variance
+        self.num_points = num_points
+        self.legend = legend
+        self.xlabel = xlabel
+        self.ylabel = ylabel
+        self.ylim = ylim
+        self.span = span
+
+    def plot(self) -> None:
+        # Calculate the pdf
+        sigma = np.sqrt(self.variance)
+        x = np.linspace(-self.span*sigma, self.span*sigma, self.num_points)
+        pdf = (1 / (np.sqrt(2*np.pi) * sigma)) * np.exp(-x**2 / (2*self.variance))
+
+        # Plot
+        line_kwargs = {"linewidth": 2, "alpha": 1.0}
+        line_kwargs.update(self.style.get("line", {}))
+        color = self.apply_color(0) or "darkgreen"
+
+        # plot the pdf
+        label = r"$p(x)$" + "\n" + r"$\sigma^2 = " + f"{self.variance:.4f}" + "$"
+        self.ax.plot(pdf, x, label=label, color=color, **line_kwargs)
+ 
+
+        # Adjust axis
+        self.ax.set_xlabel(self.ylabel)  
+        self.ax.set_ylabel(self.xlabel) 
+        if self.ylim is not None:
+            self.ax.set_ylim(self.ylim)
+        else:
+            self.ax.set_ylim([-1, 1])
         self.apply_ax_style()

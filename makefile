@@ -69,16 +69,16 @@ images:
 	.venv/bin/python web/scripts/pdf2svg.py
 	@echo "Imagens geradas!"
 
-doc: images build
+doc: images build-doc
 	@echo "Apresentando doc..."
 	mkdocs serve -a 0.0.0.0:8006
 	
-deploy-docs: build
+deploy-docs: build-doc
 	@echo "Fazendo deploy para o GitHub Pages..."
 	@mkdocs gh-deploy --force
 	@echo "Documentação publicada com sucesso no GitHub Pages!"
 
 
-build: clean-packages
+build-doc: clean-packages
 	@echo "Executando build da documentação..."
-	.venv/bin/python3 -m build
+	@mkdocs build

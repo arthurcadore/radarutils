@@ -31,6 +31,9 @@ SYMBOLS_XLIM = (0, 60)
 BITSTREAM_XLIM = (0, 60)
 NOISE_DENSITY_YLIM = (-1, 1)
 
+# Titles
+NOISE_DENSITY_TITLE = "Gaussian Noise Density"
+
 # Colors
 COLOR_I = "darkgreen"
 COLOR_Q = "firebrick"
