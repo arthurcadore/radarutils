@@ -2,11 +2,79 @@
 # This module contains basic functions for radar calculations;
 #
 # Author: Arthur Cadore
-# Date: 09-03-2026
 # """
 
 import numpy as np
-from .env_vars import LIGHT_SPEED
+from .env_vars import *
+
+def calc_radial_resolution(Tp, c=LIGHT_SPEED):
+    r"""
+    Calculate the radial resolution ($\delta_r$) of a radar system given its pulse repetition period ($T_p$) and the speed of light ($c$). The radial resolution can be calculated using the following equation:
+    
+    $$
+    \begin{equation}
+        \delta_r = \frac{c \cdot T_p}{2}
+    \end{equation}
+    $$
+    
+    Where:
+        - $\delta_r$ is the radial resolution in meters.
+        - $c$ is the speed of light in meters per second.
+        - $T_p$ is the pulse repetition period in seconds.
+    
+    Args:
+        Tp (float): Pulse repetition period in seconds.
+        c (float): Speed of light in meters per second (default: 299792458).
+    
+    Returns:
+        delta_r (float): Radial resolution in meters.
+    
+    <div class="referencia">
+        <b>Reference:</b>
+        <p>Merill I. Skolnik - Introduction To Radar Systems Third Edition (Pg - 10) </p>
+    </div>
+    """
+    if Tp < 0:
+        raise ValueError("Pulse Repetition period (Tp) must be a non-negative value in seconds")
+    
+    delta_r = (c * Tp) / 2
+
+    return delta_r
+    
+
+def calc_time_to_eco(R, c=LIGHT_SPEED):
+    r"""
+    Calculate the time it takes for a signal to travel from the radar to the target and back.
+    
+    $$
+    \begin{equation}
+        t = \frac{2R}{c}
+    \end{equation}
+    $$
+    
+    Where:
+        - $t$ is the time in seconds.
+        - $R$ is the distance in meters.
+        - $c$ is the speed of light in meters per second.
+    
+    Args:
+        R (float): Distance in meters.
+        c (float): Speed of light in meters per second (default: 299792458).
+    
+    Returns:
+        tte (float): Time to echo in seconds.
+
+    <div class="referencia">
+        <b>Reference:</b>
+        <p>Merill I. Skolnik - Introduction To Radar Systems Third Edition (Pg - 10) </p>
+    </div>
+    """
+    if R < 0:
+        raise ValueError("Distance (R) must be a non-negative value in meters.")
+    
+    tte = (2 * R) / c
+
+    return tte
 
 def calc_unambiguous_range(Tp, c=LIGHT_SPEED):
     r"""
@@ -29,6 +97,11 @@ def calc_unambiguous_range(Tp, c=LIGHT_SPEED):
 
     Returns: 
         run (float): Radius of maxium detection without ambiguity in meters.
+
+    <div class="referencia">
+        <b>Reference:</b>
+        <p>Merill I. Skolnik - Introduction To Radar Systems Third Edition (Pg - 10) </p>
+    </div>
     """
     if Tp < 0: 
         raise ValueError("Pulse Repetition period (Tp) must be a non-negative value in seconds")
@@ -38,7 +111,7 @@ def calc_unambiguous_range(Tp, c=LIGHT_SPEED):
     return run
 
 
-def effective_area(g, f, c=LIGHT_SPEED):
+def calc_effective_area(g, f, c=LIGHT_SPEED):
     r"""
     Calculate the effective area ($A_e$) of an antenna given its gain ($g$) and frequency ($f$). The $A_e$ can be calculated using the following equation:
 
@@ -80,7 +153,8 @@ def effective_area(g, f, c=LIGHT_SPEED):
     Ae = (g_linear * wavelength**2) / (4 * np.pi)
     return Ae
 
-def power_received(Pt, Gt, R, Cs, Ae): 
+
+def calc_power_received(Pt, Gt, R, Cs, Ae): 
     r"""
 
     To calculate the power received ($P_r$) by a radar system, we can use the radar range equation, which is given by: 
@@ -136,7 +210,7 @@ def power_received(Pt, Gt, R, Cs, Ae):
     return Pr, Pr_dBW, P_target, P_returned
 
 
-class MaxRange: 
+class CalcMaxRange: 
         def __init__(self, R_max, Pt, Cs, Pr_min):
 
             # commom parameters for all methods
@@ -278,33 +352,3 @@ class MaxRange:
             
             R_max = ((Pt * Ae**2 * Cs) / (4 * np.pi * wavelength**2 * Pr_min))** (1/4)
             return cls(R_max, Pt, Cs, Pr_min)
-
-
-if __name__ == "__main__":
-
-    g = 30  # Gain in dB
-    f = 3e9  # Frequency in Hz
-    r = 1000  # Range in meters
-    Pt = 1000  # Transmitted power in watts
-    Cs = 1  # Radar cross-section in square meters
-    
-    Ae = effective_area(g, f)
-    print(f"Ae: {Ae} m^2")
-
-    Pr, Pr_dBW, P_target, P_returned = power_received(Pt, g, r, Cs, Ae)
-    print(f"Pr: {Pr} W")
-    print(f"Pr_dBW: {Pr_dBW} dBW")
-
-
-    Pr_min = 1e-10  # Minimum detectable power in watts
-    # Pr_min can be used as Pr to confirm the r inputed:
-    # Pr_min = Pr
-
-    range1 = MaxRange.from_range_equation(Pt, g, Cs, Ae, Pr_min)
-    print(f"Maximum Range: {range1.max_range} m")
-
-    range2 = MaxRange.from_antenna_gain(Pt, g, f, Cs, Pr_min)
-    print(f"Maximum Range: {range2.max_range} m")
-
-    range3 = MaxRange.from_effective_area(Pt, Ae, Cs, f, Pr_min)
-    print(f"Maximum Range: {range3.max_range} m")
