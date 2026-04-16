@@ -74,7 +74,7 @@ def linear_to_db(linear: float) -> float:
     return P_db
 
 
-class power_radar_system:
+class CalcRadarPower:
     """
     To calculate the power received ($P_r$) by a radar system, we can use the radar range equation, which is given by: 
 
@@ -82,6 +82,7 @@ class power_radar_system:
     \begin{equation}
         P_r = \frac{P_t \cdot G_t \cdot \sigma \cdot A_e}{(4\pi)^2 R^4}
     \end{equation}
+    $$
 
     Where:
         - $P_r$ is the power received by the radar in watts ($W$).
@@ -91,24 +92,20 @@ class power_radar_system:
         - $A_e$ is the effective area of the receiving antenna in square meters ($m^2$).
         - $R$ is the range to the target in meters ($m$).
         
-    $$
+
     """
-    def __init__(self):
+    def __init__(self, Pr, Pt):
         pass
 
-    def at_distance(self):
+    def at_distance(self, D):
         pass
-    def at_radar_returned(self):
+    def at_radar_returned(self, A_e):
         pass
     def at_radar_absorbed(self):
         pass
 
 def power_received(Pt, Gt, R, Cs, Ae): 
     r"""
-
-
-
-
     Args: 
         Pt (float): Transmitted power in watts ($W$).
         Gt (float): Gain of the transmitting antenna (in $dBi$).

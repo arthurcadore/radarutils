@@ -1,10 +1,54 @@
+# """
+# This module contains probability related functions for radar calculations;
+#
+# Author: Arthur Cadore
+# """
+
+#TODO: Implement
+# function to calculate pd and pfa
+# function to calculate equivalent noise bandwidth
+# function to calculate likelihood ratio
+# function to calculate system performance
+# function to calculate bayes
+# function to calculate cross-section radar
 
 import numpy as np 
-# função pra pd e pfa
+from abc import ABC, abstractmethod
 
-# função pra gerar ruido AWGN
+class randomVariable(ABC):
+    @abstractmethod
+    def __init__(self):
+        pass
+    def generate(self, n):
+        raise NotImplementedError
 
-class NoiseAWGN:
+    def pdf(self, n, span=5):
+        raise NotImplementedError
+
+class notSoRandom(randomVariable):
+    def __init__(self, value=0):
+        super().__init__()
+        self.value = value
+
+    def generate(self, n):
+        return np.full(n, self.value)
+
+    def pdf(self, n, span=5):
+        raise NotImplementedError
+
+class Rayleigh(randomVariable):
+    def __init__(self, sigma):
+        super().__init__()
+        self.sigma = sigma
+
+    def generate(self, n):
+        return np.random.rayleigh(self.sigma, n)
+    
+    def pdf(self, n, span=5):
+        x = np.linspace(0, span * self.sigma, len(n))
+        return (x / self.sigma**2) * np.exp(-x**2 / (2 * self.sigma**2))
+
+class NoiseAWGN(randomVariable):
     r"""
         Class for generating AWGN (Additive White Gaussian Noise).
 
@@ -19,26 +63,21 @@ class NoiseAWGN:
             - $\sigma^2_n$ is the variance of the noise ($\sigma^2_n = \mathbb{E}[n^2]$)
 
     """
-    def __init__(self, n, sigma, seed=None, span=5):
+    def __init__(self, sigma=1, u=0, seed=None):
         r"""
         Initialize the NoiseAWGN class.
         
         Args:
-            n (int): Number of samples.
             sigma (float): Standard deviation of the noise.
+            u (float): Mean of the noise.
             seed (int): Seed for the random number generator.
-            span (int): Span of the plot (number of standard deviations from the mean).
         """
-        self.n = n
-        self.span = span
+        super().__init__()
+        self.u = u
         self.sigma = sigma
         self.seed = seed
-        self.samples = self.generate()
-        self.x = np.linspace(-self.span*self.sigma, self.span*self.sigma, self.n)
-        self.variance_value = self.variance()
-        self.pdf_values = self.pdf()
 
-    def generate(self):
+    def generate(self, n):
         r"""
         Generate AWGN samples using `np.random.normal` function.
         
@@ -47,10 +86,10 @@ class NoiseAWGN:
         """
         if self.seed is not None:
             np.random.seed(self.seed)
-        self.samples = np.random.normal(loc=0.0, scale=self.sigma, size=self.n)
+        self.samples = np.random.normal(loc=self.u, scale=self.sigma, size=n)
         return self.samples
 
-    def pdf(self):
+    def pdf(self, n, span=5):
         r"""
         Compute the Gaussian PDF exactly as in the formula below: 
 
@@ -67,37 +106,9 @@ class NoiseAWGN:
         Returns:
             pdf (np.ndarray): Gaussian PDF values.
         """
+
+        x = np.linspace(-span * self.sigma, span * self.sigma, len(n))
+
         pdf = (1.0 / np.sqrt(2 * np.pi * self.sigma**2)) * \
-               np.exp(-(self.x**2) / (2 * self.sigma**2))
+               np.exp(-(x**2) / (2 * self.sigma**2))
         return pdf
-
-    def variance(self):
-        r"""
-        Compute the variance of the generated samples using the formula based on the mean value of the samples vector:
-
-        $$
-        \begin{equation}
-            \sigma^2_n = \mathbb{E}[n^2]
-        \end{equation}
-        $$
-        
-        Where: 
-            - $\sigma^2_n$ is the variance of the noise.
-            - $\mathbb{E}[n^2]$ is the expected value of the square of the samples.
-        
-        Returns:
-            sigma_n (float): Variance of the generated samples.
-        """
-        sigma_n = np.mean(self.samples**2)
-        return sigma_n
-
-
-# banda equivalente de ruido 
-
-# razão verossimilhança
-
-# desempenho do sistema 
-
-# Bayes
-
-# cross-section radar

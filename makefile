@@ -51,7 +51,10 @@ test:
 	.venv/bin/pytest -v
 	@echo "Testes concluídos!"
 
-generate-plots:
+# ==========================================================
+# Documentação: 
+
+plots:
 	@echo "Gerando plots..."
 	@for script in tests/plots/*.py; do \
 		if [ -f "$$script" ]; then \
@@ -61,10 +64,7 @@ generate-plots:
 	done
 	@echo "Plots gerados em ./assets/"
 
-# ==========================================================
-# Documentação: 
-
-images:
+images: plots
 	@echo "Gerando imagens para a web..."
 	.venv/bin/python web/scripts/pdf2svg.py
 	@echo "Imagens geradas!"

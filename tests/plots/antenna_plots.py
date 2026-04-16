@@ -12,7 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from radarutils.core.env_vars import *
-from radarutils.radar_components.antenna import GainPattern
+from radarutils.core.antenna import GainPattern
 from radarutils.visualization.plotter import GainPatternPlot, GainPattern3DPlot, create_figure, save_figure
 
 def main():    

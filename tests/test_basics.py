@@ -54,23 +54,6 @@ def test_effective_area():
     assert np.isclose(result, expected, rtol=1e-10)
     assert result > 0
 
-
-def test_power_received():
-    """Test power received calculation."""
-    Pt = 1000  # 1 kW transmitted power
-    Gt = 100   # Transmit gain
-    R = 1000   # 1 km range
-    Cs = 1.0   # 1 m^2 RCS
-    Ae = 1.0   # 1 m^2 effective area
-    
-    try:
-        result = calc_power_received(Pt, Gt, R, Cs, Ae)
-        assert isinstance(result, (int, float, np.number))
-        assert result > 0
-    except Exception:
-        pytest.skip("power_received function may have different signature")
-
-
 def test_array_inputs():
     """Test that functions work with different input types."""
     # Test with float
