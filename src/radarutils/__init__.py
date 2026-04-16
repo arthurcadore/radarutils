@@ -6,7 +6,7 @@ Date: 09-03-2026
 """
 
 from . import core
-from . import radar_components
+from . import simulator
 from . import visualization
 
 __version__ = "1.0.10"
@@ -15,6 +15,6 @@ __email__ = "arthurbarcella.ita@gmail.com"
 
 __all__ = [
     "core",
-    "radar_components", 
+    "simulator", 
     "visualization",
 ]

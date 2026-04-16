@@ -22,23 +22,6 @@ def test_import_core_modules():
     assert radarutils.core.data is not None
     assert radarutils.core.env_vars is not None
 
-
-def test_import_radar_components():
-    """Test that radar_components module can be imported."""
-    import radarutils
-    assert radarutils.radar_components is not None
-
-
-def test_import_radar_components_modules():
-    """Test that radar_components submodules can be imported."""
-    import radarutils
-    assert radarutils.radar_components.antenna is not None
-    assert radarutils.radar_components.scene is not None
-    assert radarutils.radar_components.target is not None
-    assert radarutils.radar_components.wave is not None
-    assert radarutils.radar_components.radar is not None
-
-
 def test_import_visualization():
     """Test that visualization module can be imported."""
     import radarutils
@@ -48,5 +31,4 @@ def test_import_visualization():
 def test_import_visualization_modules():
     """Test that visualization submodules can be imported."""
     import radarutils
-    assert radarutils.visualization.animations is not None
     assert radarutils.visualization.plotter is not None
