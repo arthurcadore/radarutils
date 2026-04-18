@@ -1,9 +1,7 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 class GainPattern:
     def __init__(self, res_deg, pattern_type="ideal", gain_dBi=10, beamw_deg=60):
-        
         r"""
         Gain Pattern simulation. Used to create a irradiation diagram used for futher signal propagation. The diagram simulation is devided in $N$ components that represents the angular resolution of the simulation based on a angle $\theta$, the expression for $N$: 
 
@@ -58,7 +56,6 @@ class GainPattern:
         self.Hgain_lin_vec = np.power(10, self.Hgain_dBi_vec / 10)
         self.Vgain_lin_vec = np.power(10, self.Vgain_dBi_vec / 10)
 
-
     def isotropic_gain(self):
         r"""
             Function to create a isotropic antenna, which in 2D corresponds to the same gain in all possible directions. Based on that, the equation to isotropic can be expressed as: 
@@ -88,7 +85,6 @@ class GainPattern:
             dtype=float
         )    
         return gain_dBi_matrix
-
 
     def ideal_gain(self, atten_db=-40):
         r"""
@@ -141,7 +137,6 @@ class GainPattern:
         V_plane = H_plane
 
         return H_plane, V_plane
-
 
     def sinc_gain(self, atten_db=10):
         r"""

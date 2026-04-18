@@ -110,6 +110,40 @@ def calc_unambiguous_range(Tp, c=LIGHT_SPEED):
 
     return run
 
+def calc_max_prf(R, c=LIGHT_SPEED):
+    r"""
+    Calculate the maximum pulse repetition frequency ($PRF_{max}$) of a radar system given its maximum range ($R$) and the speed of light ($c$). The $PRF_{max}$ can be calculated using the following equation:
+    
+    $$
+    \begin{equation}
+        PRF_{max} = \frac{c}{2R}
+    \end{equation}
+    $$
+    
+    Where:
+        - $PRF_{max}$ is the maximum pulse repetition frequency in Hertz ($Hz$).
+        - $c$ is the speed of light in meters per second (default: 299792458).
+        - $R$ is the maximum range in meters ($m$).
+    
+    Args:
+        R (float): Maximum range in meters ($m$).
+        c (float): Speed of light in meters per second (default: 299792458).
+    
+    Returns:
+        prf_max (float): Maximum pulse repetition frequency in Hertz ($Hz$).
+    
+    <div class="referencia">
+        <b>Reference:</b>
+        <p>Merill I. Skolnik - Introduction To Radar Systems Third Edition (Pg - 10) </p>
+    </div>
+    """
+    if R <= 0:
+        raise ValueError("Maximum range (R) must be a positive value in meters.")
+    
+    prf_max = c / (2 * R)
+    
+    return prf_max
+
 
 def calc_effective_area(g, f, c=LIGHT_SPEED):
     r"""

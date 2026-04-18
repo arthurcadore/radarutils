@@ -1,4 +1,4 @@
-"""Radar components module for radarutils.
-
-
+"""
+Radar Simulator Package
+Provides classes for simulating radar scenes, components, and PPI visualization.
 """

@@ -1,7 +1,7 @@
 ```mermaid
 classDiagram
     class Screen{
-        +int[] dimensions=[1000,1000]
+        +int r_max=1000
         +int t=100
         +float dt=0.0001
         +Component[] components
