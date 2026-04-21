@@ -10,7 +10,11 @@ class DetectionPlot(pg.PlotWidget):
         self.showGrid(x=True, y=True, alpha=0.3)
         self.setYRange(0, 1000) # Default range, PPI will likely update this
         
-        self.legend = self.addLegend()
+        self.legend = self.addLegend(offset=(100, 10))
+        self.legend.setParentItem(self.plotItem)
+        self.legend.setZValue(1000)
+        self.legend.setBrush(pg.mkBrush(0, 0, 0, 160))
+        self.legend.setPen(pg.mkPen(200, 200, 200, width=1))
         
         # We use ScatterPlotItem because we might have multiple detections at once
         self.plot_data = pg.ScatterPlotItem(
@@ -63,7 +67,7 @@ class DetectionPlot(pg.PlotWidget):
                 if idx not in self.target_legend_added:
                     # Create a dummy item for legend
                     dummy = pg.ScatterPlotItem(symbol=sym, pen=None, brush=pg.mkBrush(200, 200, 200))
-                    self.legend.addItem(dummy, f"Alvo {idx}")
+                    self.legend.addItem(dummy, f"Target {idx}")
                     self.target_legend_added.add(idx)
                 
                 # Color based on beam error

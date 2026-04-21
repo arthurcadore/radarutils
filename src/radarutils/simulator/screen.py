@@ -52,7 +52,7 @@ class PPIViewer(pg.PlotWidget):
         self.target_legend_added = set()
 
         self.beam_fill = QtWidgets.QGraphicsPathItem()
-        self.beam_fill.setBrush(pg.mkBrush(0, 255, 0, 30))  # Semi-transparent green
+        self.beam_fill.setBrush(pg.mkBrush(0, 255, 0, 30))
         self.beam_fill.setPen(pg.mkPen(None))
         self.addItem(self.beam_fill)
 
@@ -185,12 +185,11 @@ class PPIViewer(pg.PlotWidget):
             # Add to legend if first time
             if i not in self.target_legend_added:
                 dummy = pg.ScatterPlotItem(symbol=sym, pen=None, brush=pg.mkBrush(0, 255, 0))
-                self.legend.addItem(dummy, f"Alvo {i}")
+                self.legend.addItem(dummy, f"Target {i}")
                 self.target_legend_added.add(i)
             
             # Target color
-            is_in_beam = getattr(tgt, 'in_beam', False)
-            brush = pg.mkBrush(0, 255, 0) if not is_in_beam else pg.mkBrush(255, 255, 0)
+            brush = pg.mkBrush(0, 255, 0)
             
             pts.append({
                 'pos': (tgt.x, tgt.y), 
@@ -293,7 +292,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 quality=8
             )
 
-        self.sim = PPI(dimensions=(2000,2000), dt=0.03, t=10)
+        self.sim = PPI(dimensions=(2000,2000), dt=0.03, t=120)
         self.sim.r_max = 1000
         self.sim.add_radar(theta=0, rpm=15, clockwise=True)
 
