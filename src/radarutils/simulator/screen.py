@@ -170,28 +170,34 @@ class MainWindow(QtWidgets.QMainWindow):
         super().__init__()
         self.setWindowTitle('PPI RADAR SIMULATOR')
         self.resize(1200, 800)
-        
+
         self.output_file = output_file
         self.video_writer = None
+        self.video_size = (1200, 800)  # largura, altura fixas
+
         if self.output_file:
-            # Initialize video writer
-            self.video_writer = imageio.get_writer(self.output_file, fps=30)
+            self.video_writer = imageio.get_writer(
+                self.output_file,
+                fps=30,
+                codec="libx264",
+                quality=8
+            )
 
-        self.sim = PPI(dimensions=(1000,1000), dt=0.03, t=30)
-        self.sim.r_max = 500
+        self.sim = PPI(dimensions=(2000,2000), dt=0.03, t=30)
+        self.sim.r_max = 1000
         self.sim.add_radar(theta=0, rpm=15)
-        
+
         # alvos
-        self.sim.add_target(x=100, y=100, vel=0, acc=0, theta=0)
-        self.sim.add_target(x=-100, y=-100, vel=0, acc=0, theta=0)
+        self.sim.add_target(x=200, y=200, vel=0, acc=0, theta=0)
+        self.sim.add_target(x=-200, y=-200, vel=0, acc=0, theta=0)
 
-        self.sim.add_orbital_target(r=200, speed=60, clockwise=True, alpha_start=0)
-        self.sim.add_orbital_target(r=100, speed=60, clockwise=False, alpha_start=np.pi)
+        self.sim.add_orbital_target(r=400, speed=60, clockwise=True, alpha_start=0)
+        self.sim.add_orbital_target(r=200, speed=60, clockwise=False, alpha_start=np.pi)
         
 
-        self.sim.add_nested_orbital_target(r1=350, speed1=80, acc1=0, r2=100, speed2=100, acc2=0, clockwise1=True, clockwise2=False, alpha1_start=(0), alpha2_start=0)
+        self.sim.add_nested_orbital_target(r1=700, speed1=80, acc1=0, r2=200, speed2=100, acc2=0, clockwise1=True, clockwise2=False, alpha1_start=(0), alpha2_start=0)
 
-        self.sim.add_nested_orbital_target(r1=100, speed1=20, acc1=0, r2=220, speed2=120, acc2=0, clockwise1=False, clockwise2=True, alpha1_start=np.pi/2, alpha2_start=0)
+        self.sim.add_nested_orbital_target(r1=200, speed1=20, acc1=0, r2=440, speed2=120, acc2=0, clockwise1=False, clockwise2=True, alpha1_start=np.pi/2, alpha2_start=0)
 
 
         # UI Layout
@@ -216,21 +222,35 @@ class MainWindow(QtWidgets.QMainWindow):
             print(f"Simulation finished at t={self.sim.elapsed_time:.2f}s")
             self.close()
             return
-            
+
         detections = self.sim.update()
         self.viewer.redraw()
+        self.viewer.viewport().update()
         self.det_plot.add_detections(self.sim.elapsed_time, detections)
-        
-        # Make sure layout is updated before grabbing
-        QtWidgets.QApplication.processEvents()
-        
+
         # Grab screen to MP4 if enabled
         if self.video_writer:
             pixmap = self.grab()
+
+            # força todos os frames terem mesmo tamanho
+            pixmap = pixmap.scaled(
+                self.video_size[0],
+                self.video_size[1],
+                QtCore.Qt.IgnoreAspectRatio,
+                QtCore.Qt.SmoothTransformation
+            )
+
             img = pixmap.toImage().convertToFormat(QtGui.QImage.Format_RGBA8888)
-            arr = np.array(img.constBits()).reshape(img.height(), img.width(), 4)
-            # Write to MP4 (drop alpha channel)
-            self.video_writer.append_data(arr[:, :, :3])
+
+            ptr = img.bits()
+
+            arr = np.frombuffer(ptr, dtype=np.uint8).reshape(
+                img.height(),
+                img.width(),
+                4
+            )
+
+            self.video_writer.append_data(arr[:, :, :3].copy())
 
         for t in self.sim.targets:
             lim = self.viewer.radius - 20
@@ -239,10 +259,10 @@ class MainWindow(QtWidgets.QMainWindow):
             if abs(t.y) > lim:
                 t.theta = -t.theta
 
-    def closeEvent(self, event):
-        if self.video_writer:
-            self.video_writer.close()
-            print(f"Video saved to {self.output_file}")
+def closeEvent(self, event):
+    if self.video_writer:
+        self.video_writer.close()
+        print(f"Video saved to {self.output_file}")
         super().closeEvent(event)
 
 
