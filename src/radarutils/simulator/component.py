@@ -27,9 +27,25 @@ class Components(abc.ABC):
         self.update_position(dt)
 
 class Radar(Components):
-    def __init__(self, r_max, pt, gt, s_min, beamwidth, irradPattern, x=0, y=0, theta=0, rpm=1):
+    def __init__(
+        self,
+        r_max,
+        pt,
+        gt,
+        s_min,
+        beamwidth,
+        irradPattern,
+        x=0,
+        y=0,
+        theta=0,
+        rpm=1,
+        clockwise=False
+    ):
         super().__init__(x, y, 0, 0, theta)
+
         self.rpm = rpm
+        self.clockwise = clockwise
+
         self.prf = calc_max_prf(r_max)
         self.pt = pt
         self.gt = gt
@@ -38,7 +54,11 @@ class Radar(Components):
         self.irradPattern = irradPattern
 
     def rotate(self, dt):
-        self.theta += self.rpm * dt
+        direction = -1 if self.clockwise else 1
+        self.theta += direction * self.rpm * dt
+
+        # mantém ângulo entre 0 e 360
+        self.theta = self.theta % 360
 
     def update(self, dt):
         self.rotate(dt)

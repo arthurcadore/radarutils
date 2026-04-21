@@ -28,8 +28,8 @@ class PPI():
         target = Target(x, y, vel, acc, theta)
         self.targets.append(target)
 
-    def add_radar(self, pt=1000, gt=30, s_min=1e-10, beamwidth=10, irradPattern=None, theta=0, rpm=1):
-        self.radar = Radar(self.r_max, pt, gt, s_min, beamwidth, irradPattern, theta=theta, rpm=rpm)
+    def add_radar(self, pt=1000, gt=30, s_min=1e-10, beamwidth=10, irradPattern=None, theta=0, rpm=1, clockwise=False):
+        self.radar = Radar(self.r_max, pt, gt, s_min, beamwidth, irradPattern, theta=theta, rpm=rpm, clockwise=clockwise)
 
     def add_orbital_target(self, r, speed, acceleration=0, clockwise=False, alpha_start=0):
         target = OrbitalTarget(r, speed, acceleration, clockwise, alpha_start)
@@ -79,12 +79,7 @@ class PPI():
                     detections.append((r, norm_error, i))
 
                 # Detection events
-                was_in_beam = getattr(target, 'in_beam', False)
-                if in_beam and not was_in_beam:
-                    print(f"[{self.elapsed_time:.3f}s] Target ENTER: R={r:.2f}, Az={alpha:.2f}°")
-                elif not in_beam and was_in_beam:
-                    print(f"[{self.elapsed_time:.3f}s] Target EXIT:  R={r:.2f}, Az={alpha:.2f}°")
-                
+                was_in_beam = getattr(target, 'in_beam', False)             
                 target.in_beam = in_beam
         
         if self.radar:

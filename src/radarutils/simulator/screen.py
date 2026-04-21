@@ -7,7 +7,21 @@ import imageio
 from radarutils.simulator.ppi import PPI
 
 from radarutils.simulator.detection import DetectionPlot
+import os
+from pathlib import Path
 
+def prepare_output_file(file_name="simulation.mp4"):
+    base_dir = Path(__file__).resolve().parent
+    data_dir = (base_dir / "../../../data").resolve()
+    data_dir.mkdir(parents=True, exist_ok=True)
+
+    output_path = data_dir / file_name
+
+    # remove arquivo antigo
+    if output_path.exists():
+        output_path.unlink()
+
+    return str(output_path)
 
 class PPIViewer(pg.PlotWidget):
     def __init__(self, sim: PPI, show_vectors: bool = False):
@@ -26,7 +40,11 @@ class PPIViewer(pg.PlotWidget):
         self.sweep = pg.PlotDataItem(pen=pg.mkPen((0,255,0), width=2))
         self.addItem(self.sweep)
 
-        self.legend = self.addLegend()
+        self.legend = self.addLegend(offset=(0, 0))
+        self.legend.setParentItem(self.plotItem)
+        self.legend.setZValue(1000)
+        self.legend.setBrush(pg.mkBrush(0, 0, 0, 160))
+        self.legend.setPen(pg.mkPen((0, 255, 0), width=1))
         self.targets_plot = pg.ScatterPlotItem(size=12, pen=None)
         self.addItem(self.targets_plot)
         
@@ -45,8 +63,8 @@ class PPIViewer(pg.PlotWidget):
         self.addItem(self.beam_high)
 
         # Info text in top-right
-        self.info_text = pg.TextItem("", color=(0, 255, 0), anchor=(1, 0))
-        self.info_text.setPos(self.radius, self.radius)
+        self.info_text = pg.TextItem(color=(0, 255, 0), anchor=(1, 0))
+        self.info_text.setZValue(1001)
         self.addItem(self.info_text)
 
         # Velocity vectors setup (coordinate-based segments)
@@ -56,35 +74,79 @@ class PPIViewer(pg.PlotWidget):
     def _draw_grid(self):
         # Concentric circles and distance labels
         steps = 5
+
         for i, r in enumerate(np.linspace(self.radius/steps, self.radius, steps)):
+
+            # último anel = borda principal
+            if i == steps - 1:
+                pen = pg.mkPen((0, 180, 0), width=2)
+            else:
+                pen = pg.mkPen((0, 80, 0), width=1, style=QtCore.Qt.DashLine)
+
             c = QtWidgets.QGraphicsEllipseItem(-r, -r, 2*r, 2*r)
-            c.setPen(pg.mkPen((0, 80, 0), width=1, style=QtCore.Qt.DashLine))
+            c.setPen(pen)
             self.addItem(c)
-            
-            # Distance labels along the vertical axis
+
             dist_val = self.sim.r_max * (i + 1) / steps
-            txt = pg.TextItem(f"{int(dist_val)}m", color=(0, 180, 0), anchor=(0.5, 1))
-            txt.setPos(0, r)
+            txt = pg.TextItem(
+                f"{int(dist_val)}m",
+                color=(0, 180, 0),
+                anchor=(0.5, 0)
+            )
+            txt.setPos(0, r - 18)
             self.addItem(txt)
 
         # Radial lines and angle labels
         for ang in range(0, 360, 10):
             t = math.radians(ang)
-            
-            # Draw radial line every 30 degrees
+
+            # linha radial principal a cada 30°
             if ang % 30 == 0:
                 x = self.radius * math.cos(t)
                 y = self.radius * math.sin(t)
-                self.addItem(pg.PlotDataItem([0, x], [0, y], pen=pg.mkPen((0, 60, 0), width=1)))
-            
-            # Angle labels every 10 degrees outside the main circle
-            label_radius = self.radius + 25
+
+                self.addItem(
+                    pg.PlotDataItem(
+                        [0, x], [0, y],
+                        pen=pg.mkPen((0, 60, 0), width=1)
+                    )
+                )
+
+            # pequeno tick sobre a borda a cada 10°
+            tick_in = self.radius - 10
+            tick_out = self.radius + 10
+
+            x1 = tick_in * math.cos(t)
+            y1 = tick_in * math.sin(t)
+
+            x2 = tick_out * math.cos(t)
+            y2 = tick_out * math.sin(t)
+
+            self.addItem(
+                pg.PlotDataItem(
+                    [x1, x2], [y1, y2],
+                    pen=pg.mkPen((0, 180, 0), width=1)
+                )
+            )
+
+            # label do grau
+            label_radius = self.radius + 60
             xt = label_radius * math.cos(t)
             yt = label_radius * math.sin(t)
-            
-            # Rotate angles so 0 is usually North/Top? 
-            # The current coordinate system has 0 at Right. We'll stick to consistency.
-            angle_txt = pg.TextItem(f"{ang}°", color=(0, 220, 0), anchor=(0.5, 0.5))
+
+            angle_txt = pg.TextItem(
+                html=f"""
+                <div style="
+                    color: rgb(0,220,0);
+                    font-weight: bold;
+                    font-size: 10pt;
+                    font-family: Consolas;
+                ">
+                {ang}°
+                </div>
+                """,
+                anchor=(0.5, 0.5)
+            )
             angle_txt.setPos(xt, yt)
             self.addItem(angle_txt)
 
@@ -162,7 +224,55 @@ class PPIViewer(pg.PlotWidget):
         self.vectors_plot.setData(vec_x, vec_y)
 
         # Update info text
-        self.info_text.setText(f"Tempo: {self.sim.elapsed_time:.2f}s\nAbertura: {self.sim.radar.beamwidth:.1f}°")
+        info_str = f"""
+        <div style="
+            font-family: Consolas;
+            font-size: 10pt;
+            color: rgb(0,255,0);
+            background-color: rgba(0,0,0,160);
+            padding: 6px;
+            line-height: 1.35;
+        ">
+        <b>RADAR SIMULATION STATUS</b><br>
+        Current Time    : {self.sim.elapsed_time:6.2f} s<br>
+        Beam Width : {self.sim.radar.beamwidth:6.2f}°
+        </div>
+        """
+
+        self.info_text.setHtml(info_str)
+
+        padding_top = 25
+        padding_right = 25
+
+        # limites atuais visíveis do gráfico
+        x_range, y_range = self.getViewBox().viewRange()
+
+        x_max = x_range[1]
+        y_max = y_range[1]
+
+        # anchor=(1,0) => canto superior direito do texto
+        x = x_max - padding_right
+        y = y_max - padding_top
+
+        self.info_text.setPos(x, y)
+
+        #alvos 
+
+        padding_top = 10
+        padding_left = 10
+
+        x_range, y_range = self.getViewBox().viewRange()
+
+        x_min = x_range[0]
+        y_max = y_range[1]
+
+        self.legend.anchor(
+            itemPos=(0, 0),
+            parentPos=(0, 0),
+            offset=(padding_left, padding_top)
+        )
+
+        self.legend.setPos(x_min + padding_left, y_max - padding_top)
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -183,9 +293,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 quality=8
             )
 
-        self.sim = PPI(dimensions=(2000,2000), dt=0.03, t=30)
+        self.sim = PPI(dimensions=(2000,2000), dt=0.03, t=10)
         self.sim.r_max = 1000
-        self.sim.add_radar(theta=0, rpm=15)
+        self.sim.add_radar(theta=0, rpm=15, clockwise=True)
 
         # alvos
         self.sim.add_target(x=200, y=200, vel=0, acc=0, theta=0)
@@ -196,7 +306,6 @@ class MainWindow(QtWidgets.QMainWindow):
         
 
         self.sim.add_nested_orbital_target(r1=700, speed1=80, acc1=0, r2=200, speed2=100, acc2=0, clockwise1=True, clockwise2=False, alpha1_start=(0), alpha2_start=0)
-
         self.sim.add_nested_orbital_target(r1=200, speed1=20, acc1=0, r2=440, speed2=120, acc2=0, clockwise1=False, clockwise2=True, alpha1_start=np.pi/2, alpha2_start=0)
 
 
@@ -230,9 +339,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Grab screen to MP4 if enabled
         if self.video_writer:
-            pixmap = self.grab()
+            # captura apenas área interna útil
+            pixmap = self.centralWidget().grab()
 
-            # força todos os frames terem mesmo tamanho
+            # redimensiona SEMPRE para tamanho fixo
             pixmap = pixmap.scaled(
                 self.video_size[0],
                 self.video_size[1],
@@ -240,17 +350,15 @@ class MainWindow(QtWidgets.QMainWindow):
                 QtCore.Qt.SmoothTransformation
             )
 
-            img = pixmap.toImage().convertToFormat(QtGui.QImage.Format_RGBA8888)
+            img = pixmap.toImage().convertToFormat(QtGui.QImage.Format_RGB888)
+
+            width = img.width()
+            height = img.height()
 
             ptr = img.bits()
+            arr = np.frombuffer(ptr, dtype=np.uint8).reshape(height, width, 3)
 
-            arr = np.frombuffer(ptr, dtype=np.uint8).reshape(
-                img.height(),
-                img.width(),
-                4
-            )
-
-            self.video_writer.append_data(arr[:, :, :3].copy())
+            self.video_writer.append_data(arr.copy())
 
         for t in self.sim.targets:
             lim = self.viewer.radius - 20
@@ -266,9 +374,14 @@ def closeEvent(self, event):
         super().closeEvent(event)
 
 
+
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     pg.setConfigOptions(antialias=True)
-    w = MainWindow(output_file="simulation.mp4")
+
+    output_file = prepare_output_file("simulation.mp4")
+
+    w = MainWindow(output_file=output_file)
     w.show()
+
     sys.exit(app.exec())
