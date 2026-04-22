@@ -39,7 +39,8 @@ class Radar(Components):
         y=0,
         theta=0,
         rpm=1,
-        clockwise=False
+        clockwise=False,
+        deg_step=0.1,
     ):
         super().__init__(x, y, 0, 0, theta)
 
@@ -51,6 +52,7 @@ class Radar(Components):
         self.gt = gt
         self.s_min = s_min
         self.beamwidth = beamwidth
+        self.deg_step = deg_step
         self.irradPattern = irradPattern
 
     def rotate(self, dt):
