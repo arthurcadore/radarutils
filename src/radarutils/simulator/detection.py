@@ -9,18 +9,20 @@ class DetectionRecord:
     Registro imutável de uma única detecção do radar.
 
     Attributes:
-        time:        Tempo de simulação em que a detecção ocorreu (s).
-        target_idx:  Índice do target detectado (0-based).
-        range_m:     Distância do radar ao target no momento da detecção (m).
-        azimuth_deg: Azimute do target no momento da detecção (°, [0, 360)).
-        deg_error:   Erro angular em relação ao centro do feixe (°),
-                     quantizado por deg_step. 0 = centro exato do feixe.
+        time:           Tempo de simulação em que a detecção ocorreu (s).
+        target_idx:     Índice do target detectado (0-based).
+        range_m:        Distância do radar ao target no momento da detecção (m).
+        azimuth_deg:    Azimute do target no momento da detecção (°, [0, 360)).
+        deg_error:      Erro angular em relação ao centro do feixe (°),
+                        quantizado por deg_step. 0 = centro exato do feixe.
+        rx_power_dbm:   Potência recebida do alvo em dBm (equação do radar).
     """
-    time:        float
-    target_idx:  int
-    range_m:     float
-    azimuth_deg: float
-    deg_error:   float
+    time:           float
+    target_idx:     int
+    range_m:        float
+    azimuth_deg:    float
+    deg_error:      float
+    rx_power_dbm:   float
 
 
 class DetectionLog:
@@ -84,18 +86,19 @@ class DetectionLog:
         output = Path(path).resolve()
         output.parent.mkdir(parents=True, exist_ok=True)
 
-        fieldnames = ['time', 'target_idx', 'range_m', 'azimuth_deg', 'deg_error']
+        fieldnames = ['time', 'target_idx', 'range_m', 'azimuth_deg', 'deg_error', 'rx_power_dbm']
 
         with open(output, 'w', newline='', encoding='utf-8') as f:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             for rec in self._records:
                 writer.writerow({
-                    'time':        f'{rec.time:.6g}',
-                    'target_idx':  rec.target_idx,
-                    'range_m':     f'{rec.range_m:.4f}',
-                    'azimuth_deg': f'{rec.azimuth_deg:.4f}',
-                    'deg_error':   f'{rec.deg_error:.4f}',
+                    'time':          f'{rec.time:.6g}',
+                    'target_idx':    rec.target_idx,
+                    'range_m':       f'{rec.range_m:.4f}',
+                    'azimuth_deg':   f'{rec.azimuth_deg:.4f}',
+                    'deg_error':     f'{rec.deg_error:.4f}',
+                    'rx_power_dbm':  f'{rec.rx_power_dbm:.4f}',
                 })
 
         return output

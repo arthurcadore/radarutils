@@ -18,6 +18,7 @@ install:
 	python3 -m venv .venv
 	@echo "Instalando dependências..."
 	.venv/bin/pip install -r requirements.txt
+	.venv/bin/pip install -e .
 	@echo "Instalação concluída!"
 
 install-additional:

@@ -1,4 +1,5 @@
 import sys
+import os
 import argparse
 import numpy as np
 
@@ -110,21 +111,33 @@ class Simulator:
             alpha1_start, alpha2_start,
         )
 
-    def run(self, gui: bool = True, show_vectors: bool = False, output_file: str = None):
+    def run(self, gui: bool = True, show_vectors: bool = False, output_file: str = None,
+            coherent_integration: bool = False, clutter_type: str = "None", normalize_plots: bool = True,
+            max_video_mb: float = None, video_quality: int = 8):
         """
         Executa a simulação.
 
         Args:
-            gui:     Se True, roda sem interface gráfica (apenas terminal).
-                          Se False, abre a janela Qt com PPI + Detection Plot.
-            show_vectors: (modo com tela) Exibe vetores de velocidade dos targets.
-            output_file:  (modo com tela) Caminho para salvar o vídeo MP4. None = sem gravação.
+            gui:                 Se True, roda sem interface gráfica (apenas terminal).
+            show_vectors:        (modo com tela) Exibe vetores de velocidade dos targets.
+            output_file:         (modo com tela) Caminho para salvar o vídeo MP4. None = sem gravação.
+            coherent_integration: Se True, usa integração coerente (soma de amplitudes IQ).
+                                  Se False (padrão), usa integração não-coerente (soma de potências).
+            normalize_plots:      Se True, normaliza os gráficos da terceira coluna (e Filtro Casado) de 0 a 1.
+            max_video_mb:         Tamanho máximo em MB para o vídeo gerado. A simulação para ao atingir.
+            video_quality:        Qualidade do vídeo (0-10). Padrão: 8.
         """
         if gui:
             self._run_headless()
         else:
             self._qt_exit_code = self._run_with_screen(
-                show_vectors=show_vectors, output_file=output_file
+                show_vectors=show_vectors,
+                output_file=output_file,
+                coherent_integration=coherent_integration,
+                clutter_type=clutter_type,
+                normalize_plots=normalize_plots,
+                max_video_mb=max_video_mb,
+                video_quality=video_quality,
             )
 
     @property
@@ -153,7 +166,9 @@ class Simulator:
             self.ppi.update()
         print(f"=== Simulation finished at t={self.ppi.elapsed_time:.2f}s ===")
 
-    def _run_with_screen(self, show_vectors: bool = False, output_file: str = None) -> int:
+    def _run_with_screen(self, show_vectors: bool = False, output_file: str = None,
+                         coherent_integration: bool = False, clutter_type: str = "None", normalize_plots: bool = True,
+                         max_video_mb: float = None, video_quality: int = 8) -> int:
         """Abre a janela Qt e executa o loop de eventos. Retorna o exit code."""
         import pyqtgraph as pg
         from PySide6 import QtWidgets
@@ -166,6 +181,11 @@ class Simulator:
             ppi=self.ppi,
             show_vectors=show_vectors,
             output_file=output_file,
+            coherent_integration=coherent_integration,
+            clutter_type=clutter_type,
+            normalize_plots=normalize_plots,
+            max_video_mb=max_video_mb,
+            video_quality=video_quality,
         )
         window.show()
         return app.exec()
@@ -173,30 +193,63 @@ class Simulator:
 
 def _build_default_simulator() -> Simulator:
     """Cria o simulador com a configuração padrão de demonstração."""
-    sim = Simulator(dimensions=(2000, 2000), dt=0.01, t=120.0, r_max=1000.0)
+    sim = Simulator(dimensions=(2400, 2400), dt=0.06, t=180.0, r_max=1200.0)
 
-    sim.add_radar(theta=0, rpm=8, clockwise=True)
+    sim.add_radar(theta=0, rpm=5, clockwise=True, beamwidth=10)
 
     # Targets lineares / estáticos
-    sim.add_target(x=200,  y=200,  vel=0, acc=0, theta=0)
-    sim.add_target(x=-200, y=-200, vel=0, acc=0, theta=0)
+    sim.add_target(x=-600, y=-600, vel=0, acc=0, theta=0)
 
     # Targets orbitais simples
-    sim.add_orbital_target(r=400,  speed=60,  clockwise=True,  alpha_start=0)
-    sim.add_orbital_target(r=200,  speed=60,  clockwise=False, alpha_start=np.pi)
+    sim.add_orbital_target(r=900,  speed=60,  clockwise=False,  alpha_start=np.pi)
+    sim.add_orbital_target(r=600,  speed=60,  clockwise=False, alpha_start=np.pi/2)
 
-    # Targets epicíclicos (nested orbital)
+    # Alvo 1
     sim.add_nested_orbital_target(
-        r1=700, speed1=80,  acc1=0,
-        r2=200, speed2=100, acc2=0,
-        clockwise1=True,  clockwise2=False,
-        alpha1_start=0,     alpha2_start=0,
-    )
-    sim.add_nested_orbital_target(
-        r1=200, speed1=20,  acc1=0,
-        r2=440, speed2=120, acc2=0,
+        r1=220, speed1=95,  acc1=1,
+        r2=520, speed2=130, acc2=-1,
         clockwise1=False, clockwise2=True,
-        alpha1_start=np.pi / 2, alpha2_start=0,
+        alpha1_start=np.pi, alpha2_start=0,
+    )
+    
+    # Alvo 2
+    sim.add_nested_orbital_target(
+        r1=250, speed1=140, acc1=-2,
+        r2=600, speed2=85,  acc2=1,
+        clockwise1=True, clockwise2=False,
+        alpha1_start=np.pi, alpha2_start=np.pi/4,
+    )
+    
+    # Alvo 3
+    sim.add_nested_orbital_target(
+        r1=220, speed1=110, acc1=0,
+        r2=500, speed2=90,  acc2=2,
+        clockwise1=False, clockwise2=False,
+        alpha1_start=np.pi/2, alpha2_start=3*np.pi/2,
+    )
+    
+    # Alvo 4
+    sim.add_nested_orbital_target(
+        r1=280, speed1=75,  acc1=3,
+        r2=660, speed2=145, acc2=-2,
+        clockwise1=True, clockwise2=True,
+        alpha1_start=5*np.pi/6, alpha2_start=np.pi/2,
+    )
+    
+    # Alvo 5 (novo)
+    sim.add_nested_orbital_target(
+        r1=250, speed1=125, acc1=-1,
+        r2=500, speed2=115, acc2=1,
+        clockwise1=False, clockwise2=True,
+        alpha1_start=7*np.pi/6, alpha2_start=np.pi,
+    )
+    
+    # Alvo 6 (novo)
+    sim.add_nested_orbital_target(
+        r1=200, speed1=160, acc1=2,
+        r2=550, speed2=70, acc2=0,
+        clockwise1=True, clockwise2=False,
+        alpha1_start=np.pi/8, alpha2_start=11*np.pi/8,
     )
 
     return sim
@@ -210,15 +263,43 @@ if __name__ == '__main__':
         help='Roda a simulação sem interface gráfica (apenas terminal)',
     )
     parser.add_argument(
+        '--coherent',
+        action='store_true',
+        help='Usa integração coerente (soma IQ). Padrão: não-coerente (soma de potências).',
+    )
+    parser.add_argument(
         '--no-vectors',
         action='store_true',
         help='Desativa vetores de velocidade na tela',
+    )
+    parser.add_argument(
+        '--no-normalize',
+        action='store_true',
+        help='Desativa a normalização (escala 0 a 1) dos gráficos de processamento',
+    )
+    parser.add_argument(
+        '--clutter',
+        type=str,
+        default='None',
+        help='Tipo de clutter ambiente (ex: "None", "Rayleigh")',
     )
     parser.add_argument(
         '--output',
         type=str,
         default=None,
         help='Caminho para salvar o vídeo MP4 (ex: simulation.mp4). Padrão: sem gravação.',
+    )
+    parser.add_argument(
+        '--quality',
+        type=int,
+        default=8,
+        help='Qualidade do vídeo (0 a 10). Padrão: 8. Valores menores diminuem o tamanho do arquivo.',
+    )
+    parser.add_argument(
+        '--max-mb',
+        type=float,
+        default=None,
+        help='Tamanho máximo do vídeo exportado em MB. A simulação encerra quando atingir.',
     )
     parser.add_argument(
         '--export',
@@ -228,6 +309,10 @@ if __name__ == '__main__':
         help='Exporta detecções para CSV após a simulação (ex: detections.csv).',
     )
     args = parser.parse_args()
+
+    # Se estiver rodando sem tela (ex: servidor Linux sem X11) para exportar vídeo
+    if not os.environ.get('DISPLAY') and sys.platform.startswith('linux') and not args.gui:
+        os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 
     simulator = _build_default_simulator()
 
@@ -241,6 +326,11 @@ if __name__ == '__main__':
         gui=args.gui,
         show_vectors=not args.no_vectors,
         output_file=output_path,
+        coherent_integration=True,
+        clutter_type=args.clutter,
+        normalize_plots=not args.no_normalize,
+        max_video_mb=args.max_mb,
+        video_quality=args.quality,
     )
 
     if args.export:

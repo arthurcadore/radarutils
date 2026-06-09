@@ -45,6 +45,76 @@ class PPI():
     def add_clutter():
         pass
 
+    # 
+    # Radar equation helpers
+    # 
+
+    _WAVELENGTH_M   = 0.03   # λ default: 10 GHz (banda X) em metros
+    _RCS_DEFAULT_M2 = 1.0    # σ default: 1 m²  (alvo genérico)
+    _4PI3           = (4 * np.pi) ** 3
+
+    def _antenna_gain_linear(self, deg_error: float) -> float:
+        """
+        Retorna o ganho linear G(θ) da antena para um dado erro angular.
+
+        Se o radar possui um ``irradPattern`` callable, ele é chamado com
+        ``deg_error`` (em graus) e seu resultado é interpretado como ganho
+        **linear** (não em dB).
+
+        Caso contrário, aplica um modelo Gaussiano calibrado pela beamwidth:
+            G(θ) = G_max · exp(-θ² / (2σ²))
+        onde σ = beamwidth / (2 · √(2 · ln(2)))  ≈  beamwidth / 2.355
+        (HPBW half-power convention).
+
+        Args:
+            deg_error: Erro angular em relação ao centro do feixe (graus).
+
+        Returns:
+            Ganho linear (adimensional, ≥ 0).
+        """
+        radar = self.radar
+        G_max_linear = 10 ** (radar.gt / 10)   # dBi → linear
+
+        if callable(radar.irradPattern):
+            return float(radar.irradPattern(deg_error))
+
+        # Modelo Gaussiano: σ tal que G(bw/2) = G_max/2  (−3 dB)
+        bw_half = radar.beamwidth / 2.0
+        if bw_half == 0:
+            return G_max_linear
+        sigma = bw_half / np.sqrt(2 * np.log(2))   # sigma em graus
+        return G_max_linear * np.exp(-(deg_error ** 2) / (2 * sigma ** 2))
+
+    def _calc_rx_power_dbm(self, range_m: float, deg_error: float) -> float:
+        """
+        Calcula a potência recebida (dBm) via equação do radar:
+
+            P_rx = (Pt · G_tx(θ) · G_rx(θ) · λ² · σ) / ((4π)³ · R⁴)
+
+        Para este modelo, G_tx = G_rx = G(θ) (radar monoestático com mesma
+        antena para TX e RX, degradada pelo deg_error).
+
+        Args:
+            range_m:   Distância ao alvo (m).
+            deg_error: Erro angular em relação ao centro do feixe (graus).
+
+        Returns:
+            Potência recebida em dBm.
+        """
+        if range_m <= 0:
+            return -200.0
+
+        G  = self._antenna_gain_linear(deg_error)
+        Pt = self.radar.pt              # Watts
+        lam = self._WAVELENGTH_M
+        sigma = self._RCS_DEFAULT_M2
+
+        P_rx_w = (Pt * G**2 * lam**2 * sigma) / (self._4PI3 * range_m**4)
+        P_rx_w = max(P_rx_w, 1e-30)    # evita log(0)
+        return 10 * np.log10(P_rx_w * 1e3)   # W → dBm
+
+    # 
+
     def update(self) -> list[DetectionRecord]:
         """
         Avança um passo de simulação.
@@ -86,12 +156,16 @@ class PPI():
                     deg_step  = self.radar.deg_step
                     deg_error = round(diff / deg_step) * deg_step
 
+                    # Potência RX via equação do radar
+                    rx_power_dbm = self._calc_rx_power_dbm(r, deg_error)
+
                     record = DetectionRecord(
-                        time        = self.elapsed_time,
-                        target_idx  = i,
-                        range_m     = r,
-                        azimuth_deg = alpha,
-                        deg_error   = deg_error,
+                        time         = self.elapsed_time,
+                        target_idx   = i,
+                        range_m      = r,
+                        azimuth_deg  = alpha,
+                        deg_error    = deg_error,
+                        rx_power_dbm = rx_power_dbm,
                     )
                     detections.append(record)
                     self.detection_log.add(record)
