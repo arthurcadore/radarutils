@@ -7,7 +7,17 @@ import imageio
 from pathlib import Path
 from PySide6 import QtCore, QtWidgets, QtGui
 
-from radarutils.simulator.ppi import PPI
+
+from radarutils.simulator.mti import MTI
+from radarutils.simulator.cfar import ca_cfar
+from radarutils.simulator.integrator import PulseIntegrator
+from radarutils.simulator.ppi import PPI, PPIViewer, PPIEstimatedTracker, PPIEstimatedViewer
+from radarutils.simulator.constants import (
+    C, F_C, B, N_SAMPLES,
+    DEFAULT_SNR_DB, N_GUARD, N_TRAIN, K_CFAR, N_INT,
+    MIN_CFAR_ABS, MIN_Y_MTI, MIN_Y_INT, MIN_Y_CFAR, MAX_MATCH_DIST
+)
+
 from radarutils.simulator.detection import DetectionRecord
 
 def prepare_output_file(file_name: str = "simulation.mp4") -> str:
@@ -297,16 +307,11 @@ class PulseWidget(QtWidgets.QSplitter):
       MF  (rosa)   : Filtro Casado (Pulse Compression) no tempo.
     """
 
-    C      = 3e8      # velocidade da luz (m/s)
-    F_C    = 10e9     # portadora (Hz) — banda X
-    B      = 30e6     # largura de banda do chirp (Hz)
-    N      = 2000     # amostras por PRI
-    SNR_DB = 20.0     # SNR padrão (dB) — ajustável via atributo ou construtor
 
     def __init__(self, ppi: PPI = None, snr_db: float = None, coherent_integration: bool = False, clutter_type: str = "None", normalize_plots: bool = True):
         super().__init__(QtCore.Qt.Vertical)
         self.ppi        = ppi
-        self.snr_db     = snr_db if snr_db is not None else self.SNR_DB
+        self.snr_db     = snr_db if snr_db is not None else DEFAULT_SNR_DB
         self.coherent_integration = coherent_integration
         self.clutter_type = clutter_type if clutter_type else "None"
         self.normalize_plots = normalize_plots
@@ -328,14 +333,14 @@ class PulseWidget(QtWidgets.QSplitter):
         # Parâmetros de forma de onda
         # 
         r_max       = ppi.r_max if ppi else 1000.0
-        self.T_PRI  = 2.0 * r_max / self.C
+        self.T_PRI  = 2.0 * r_max / C
         self.T_P    = self.T_PRI / 7.0
-        self.fs     = self.N / self.T_PRI
-        self.t      = np.linspace(0, self.T_PRI, self.N, endpoint=False)
+        self.fs     = N_SAMPLES / self.T_PRI
+        self.t      = np.linspace(0, self.T_PRI, N_SAMPLES, endpoint=False)
         self.t_us   = self.t * 1e6
-        self.k      = self.B / self.T_P
+        self.k      = B / self.T_P
         self.n_p    = int(self.T_P * self.fs)       # amostras do pulso TX
-        self.N_rx   = self.N - self.n_p             # amostras do período de escuta
+        self.N_rx   = N_SAMPLES - self.n_p             # amostras do período de escuta
 
         if ppi and ppi.radar:
             self.P_tx_dbm = 10.0 * np.log10(ppi.radar.pt * 1e3)
@@ -343,7 +348,7 @@ class PulseWidget(QtWidgets.QSplitter):
             self.P_tx_dbm = 60.0
 
         # Sinal TX: cos(π·k·t²) nos primeiros n_p samples
-        self._tx            = np.zeros(self.N)
+        self._tx            = np.zeros(N_SAMPLES)
         t_chirp             = self.t[:self.n_p]
         self._tx[:self.n_p] = np.cos(np.pi * self.k * t_chirp ** 2)
 
@@ -386,7 +391,7 @@ class PulseWidget(QtWidgets.QSplitter):
         self.rx_plot.setMouseEnabled(x=False, y=False)
         self.rx_plot.setXLink(self.tx_plot)
         self.rx_curve = self.rx_plot.plot(
-            self.t_us, np.zeros(self.N),
+            self.t_us, np.zeros(N_SAMPLES),
             pen=pg.mkPen((255, 140, 0), width=1),
         )
         self.rx_plot.addItem(pg.InfiniteLine(
@@ -408,7 +413,7 @@ class PulseWidget(QtWidgets.QSplitter):
         self.mf_plot.setMouseEnabled(x=False, y=False)
         self.mf_plot.setXLink(self.tx_plot)
         self.mf_curve = self.mf_plot.plot(
-            self.t_us, np.zeros(self.N),
+            self.t_us, np.zeros(N_SAMPLES),
             pen=pg.mkPen((255, 0, 255), width=1),
         )
         self.mf_plot.addItem(pg.InfiniteLine(
@@ -429,21 +434,21 @@ class PulseWidget(QtWidgets.QSplitter):
         """
         Reconstrói RX, adiciona AWGN e delega FFT para o fft_widget se existir.
         """
-        rx         = np.zeros(self.N)          # sinal real (para plot)
-        rx_complex = np.zeros(self.N, dtype=complex)  # sinal complexo (para integ. coerente)
+        rx         = np.zeros(N_SAMPLES)          # sinal real (para plot)
+        rx_complex = np.zeros(N_SAMPLES, dtype=complex)  # sinal complexo (para integ. coerente)
         status_parts : list[str] = []
 
         if detections and self.ppi and self.ppi.radar:
             self.P_tx_dbm = 10.0 * np.log10(self.ppi.radar.pt * 1e3)
 
             for rec in detections:
-                tau   = 2.0 * rec.range_m / self.C
+                tau   = 2.0 * rec.range_m / C
                 n_del = int(tau * self.fs)
-                if n_del >= self.N:
+                if n_del >= N_SAMPLES:
                     continue
 
                 a   = 10.0 ** ((rec.rx_power_dbm - self.P_tx_dbm) / 20.0)
-                phi = (2.0 * np.pi * self.F_C * tau) % (2.0 * np.pi)
+                phi = (2.0 * np.pi * F_C * tau) % (2.0 * np.pi)
 
                 tgt = self.ppi.targets[rec.target_idx]
                 if rec.range_m > 0 and tgt.velocity > 0:
@@ -452,9 +457,9 @@ class PulseWidget(QtWidgets.QSplitter):
                     v_r = (vx * tgt.x + vy * tgt.y) / rec.range_m
                 else:
                     v_r = 0.0
-                f_d = 2.0 * v_r * self.F_C / self.C
+                f_d = 2.0 * v_r * F_C / C
 
-                end      = min(n_del + self.n_p, self.N)
+                end      = min(n_del + self.n_p, N_SAMPLES)
                 n_actual = end - n_del
                 if n_actual <= 0:
                     continue
@@ -478,19 +483,19 @@ class PulseWidget(QtWidgets.QSplitter):
             # em banda base, o envelope final após o filtro casado segue Rayleigh.
             # Aqui configurado para uma intensidade moderada relativa ao alvo.
             clutter_amp = 0.000001
-            c_noise = clutter_amp * (np.random.randn(self.N) + 1j * np.random.randn(self.N)) / np.sqrt(2)
+            c_noise = clutter_amp * (np.random.randn(N_SAMPLES) + 1j * np.random.randn(N_SAMPLES)) / np.sqrt(2)
             rx_complex += c_noise
             rx += np.real(c_noise)
 
         # ── Atualização do Header ─────────────────────────────────────────
         T_us   = self.T_P   * 1e6
         PRI_us = self.T_PRI * 1e6
-        B_MHz  = self.B / 1e6
+        B_MHz  = B / 1e6
         r_min  = self.ppi.r_max / 7.0 if self.ppi else 0.0
         bw     = self.ppi.radar.beamwidth if (self.ppi and self.ppi.radar) else 0.0
         c_time = self.ppi.elapsed_time if self.ppi else 0.0
         t_total = self.ppi.t if self.ppi else 0.0
-        n_samples = self.N
+        n_samples = N_SAMPLES
         r_max = self.ppi.r_max if self.ppi else 0.0
         c_str = self.clutter_type.capitalize() if self.clutter_type and self.clutter_type.lower() != 'none' else "None"
 
@@ -502,7 +507,7 @@ class PulseWidget(QtWidgets.QSplitter):
             f'<tr>'
             f'<td align="right" style="color:#88CCFF; padding-right:4px;">PRI:</td><td align="left" style="font-weight: bold; padding-right:15px;">{PRI_us:.2f} µs</td>'
             f'<td align="right" style="color:#88CCFF; padding-right:4px;">Tp:</td><td align="left" style="font-weight: bold; padding-right:15px;">{T_us:.2f} µs</td>'
-            f'<td align="right" style="color:#88CCFF; padding-right:4px;">Fc:</td><td align="left" style="font-weight: bold; padding-right:15px;">{self.F_C/1e9:.0f} GHz</td>'
+            f'<td align="right" style="color:#88CCFF; padding-right:4px;">Fc:</td><td align="left" style="font-weight: bold; padding-right:15px;">{F_C/1e9:.0f} GHz</td>'
             f'<td align="right" style="color:#88CCFF; padding-right:4px;">BW:</td><td align="left" style="font-weight: bold;">{B_MHz:.0f} MHz</td>'
             f'</tr>'
             f'<tr>'
@@ -536,7 +541,7 @@ class PulseWidget(QtWidgets.QSplitter):
         # σ calibrado para SNR desejado relativo ao pico normalizado
         ref = float(np.max(np.abs(rx_norm))) if peak > 1e-30 else 0.88
         sigma    = ref / (10.0 ** (self.snr_db / 20.0))
-        rx_noisy = rx_norm + sigma * np.random.randn(self.N)
+        rx_noisy = rx_norm + sigma * np.random.randn(N_SAMPLES)
 
         # ── Plot tempo ───────────────────────────────────────────────────
         # Y-range é fixo (definido no __init__) — sem auto-scale pelo ruído
@@ -572,213 +577,6 @@ class PulseWidget(QtWidgets.QSplitter):
         return {'comp_disp': comp_disp, 'comp_complex': comp_complex, 'azimuth_deg': az}
 
 
-class PPIViewer(pg.PlotWidget):
-    """Widget de visualização do PPI radar (Plan Position Indicator)."""
-
-    def __init__(self, ppi: PPI, show_vectors: bool = False):
-        super().__init__()
-        self.ppi = ppi
-        self.radius = min(ppi.dimensions) / 2
-        self.show_vectors = show_vectors
-
-        self.setBackground('k')
-        self.setAspectLocked(True)
-        self.hideAxis('bottom')
-        self.hideAxis('left')
-        self.setXRange(-self.radius, self.radius)
-        self.setYRange(-self.radius, self.radius)
-        self._draw_grid()
-
-        self.sweep = pg.PlotDataItem(pen=pg.mkPen((0, 255, 0), width=2))
-        self.addItem(self.sweep)
-
-        self.legend = self.addLegend(offset=(0, 0))
-        self.legend.setParentItem(self.plotItem)
-        self.legend.setZValue(1000)
-        self.legend.setBrush(pg.mkBrush(0, 0, 0, 160))
-        self.legend.setPen(pg.mkPen((0, 255, 0), width=1))
-
-        self.targets_plot = pg.ScatterPlotItem(size=12, pen=None)
-        self.addItem(self.targets_plot)
-
-        self.available_symbols = ['o', 's', 't', 'd', '+', 'x', 'star', 'p', 'h']
-        self.target_legend_added:  set[int] = set()
-        self.target_legend_labels: dict[int, object] = {}  # idx -> LabelItem
-
-        self.beam_fill = QtWidgets.QGraphicsPathItem()
-        self.beam_fill.setBrush(pg.mkBrush(0, 255, 0, 30))
-        self.beam_fill.setPen(pg.mkPen(None))
-        self.addItem(self.beam_fill)
-
-        self.beam_low = pg.PlotDataItem(pen=pg.mkPen((0, 180, 0), width=1))
-        self.addItem(self.beam_low)
-
-        self.beam_high = pg.PlotDataItem(pen=pg.mkPen((0, 180, 0), width=1))
-        self.addItem(self.beam_high)
-
-        self.info_text = pg.TextItem(anchor=(1, 0))
-        self.info_text.setZValue(1001)
-        self.addItem(self.info_text)
-        self.info_text.setHtml(
-            """
-            <div style="
-                font-family: Consolas;
-                font-size: 12pt;
-                color: #00FF00;
-                font-weight: bold;
-                background-color: rgba(0,0,0,160);
-                padding: 6px;
-            ">
-            PPI REAL
-            </div>
-            """
-        )
-
-        self.vectors_plot = pg.PlotDataItem(pen=pg.mkPen((255, 255, 255, 150), width=1))
-        self.addItem(self.vectors_plot)
-
-    def _draw_grid(self):
-        """Desenha círculos concêntricos, linhas radiais e rótulos de ângulo."""
-        steps = 4
-
-        #  Cálculo e desenho do R_min 
-        # T_PRI = 2 * r_max / c 
-        # T_p = T_PRI / 7.0
-        # r_min = c * T_p / 2 = r_max / 7.0
-        r_min = self.ppi.r_max / 7.0
-        r_min_sc = self.radius / 7.0  # escalar para coordenada de tela
-
-        c_min = QtWidgets.QGraphicsEllipseItem(-r_min_sc, -r_min_sc, 2 * r_min_sc, 2 * r_min_sc)
-        # Mesma espessura da borda do radar
-        c_min.setPen(pg.mkPen((0, 180, 0), width=2))
-        self.addItem(c_min)
-        # -
-
-        for i, r in enumerate(np.linspace(self.radius / steps, self.radius, steps)):
-            if i == steps - 1:
-                pen = pg.mkPen((0, 180, 0), width=2)
-            else:
-                pen = pg.mkPen((0, 80, 0), width=1, style=QtCore.Qt.DashLine)
-
-            c = QtWidgets.QGraphicsEllipseItem(-r, -r, 2 * r, 2 * r)
-            c.setPen(pen)
-            self.addItem(c)
-
-            dist_val = self.ppi.r_max * (i + 1) / steps
-            txt = pg.TextItem(f" {int(dist_val)}m ", color=(0, 180, 0), anchor=(0.5, 0))
-            txt.setPos(0, r - 18)
-            self.addItem(txt)
-
-        for ang in range(0, 360, 30):
-            t = math.radians(ang)
-
-            x = self.radius * math.cos(t)
-            y = self.radius * math.sin(t)
-            self.addItem(pg.PlotDataItem([0, x], [0, y], pen=pg.mkPen((0, 60, 0), width=1)))
-
-            tick_in  = self.radius - 10
-            tick_out = self.radius + 10
-            x1 = tick_in  * math.cos(t); y1 = tick_in  * math.sin(t)
-            x2 = tick_out * math.cos(t); y2 = tick_out * math.sin(t)
-            self.addItem(pg.PlotDataItem([x1, x2], [y1, y2], pen=pg.mkPen((0, 180, 0), width=1)))
-
-            label_radius = self.radius + 60
-            xt = label_radius * math.cos(t)
-            yt = label_radius * math.sin(t)
-            angle_txt = pg.TextItem(
-                html=f"""
-                <div style="
-                    color: rgb(0,220,0);
-                    font-weight: bold;
-                    font-size: 10pt;
-                    font-family: Consolas;
-                ">
-                {ang}°
-                </div>
-                """,
-                anchor=(0.5, 0.5),
-            )
-            angle_txt.setPos(xt, yt)
-            self.addItem(angle_txt)
-
-    def redraw(self):
-        """Atualiza todos os elementos visuais para o estado atual do PPI."""
-        ppi = self.ppi
-
-        # Varredura (sweep line)
-        th = math.radians(ppi.radar.theta)
-        x  = self.radius * math.cos(th)
-        y  = self.radius * math.sin(th)
-        self.sweep.setData([0, x], [0, y])
-
-        # Bordas do feixe
-        th_l = math.radians(ppi.theta_low)
-        th_h = math.radians(ppi.theta_high)
-        xl = self.radius * math.cos(th_l); yl = self.radius * math.sin(th_l)
-        xh = self.radius * math.cos(th_h); yh = self.radius * math.sin(th_h)
-        self.beam_low.setData([0, xl],  [0, yl])
-        self.beam_high.setData([0, xh], [0, yh])
-
-        # Setor preenchido
-        path = QtGui.QPainterPath()
-        path.moveTo(0, 0)
-        r = self.radius
-        path.arcTo(-r, -r, 2 * r, 2 * r, -ppi.theta_low, -ppi.radar.beamwidth)
-        path.lineTo(0, 0)
-        self.beam_fill.setPath(path)
-
-        # Targets e vetores de velocidade
-        pts: list[dict] = []
-        vec_x: list[float] = []
-        vec_y: list[float] = []
-        v_scale = 0.5  # metros por m/s
-
-        for i, tgt in enumerate(ppi.targets):
-            sym = self.available_symbols[i % len(self.available_symbols)]
-
-            speed = tgt.velocity  # magnitude do vetor de velocidade (m/s)
-
-            if i not in self.target_legend_added:
-                dummy = pg.ScatterPlotItem(symbol=sym, pen=None, brush=pg.mkBrush(0, 255, 0))
-                self.legend.addItem(dummy, f"{speed:.1f} m/s")
-                # Guarda referência ao LabelItem para atualizações futuras
-                self.target_legend_labels[i] = self.legend.items[-1][1]
-                self.target_legend_added.add(i)
-            else:
-                # Atualiza a velocidade a cada frame
-                label_item = self.target_legend_labels.get(i)
-                if label_item is not None:
-                    label_item.setText(f"{speed:.1f} m/s", color=(0, 255, 0))
-
-            pts.append({'pos': (tgt.x, tgt.y), 'symbol': sym, 'brush': pg.mkBrush(0, 255, 0)})
-
-            if self.show_vectors and tgt.velocity > 0:
-                vx = tgt.velocity * math.cos(tgt.theta) * v_scale
-                vy = tgt.velocity * math.sin(tgt.theta) * v_scale
-                tip_x = tgt.x + vx
-                tip_y = tgt.y + vy
-
-                head_size  = 5
-                head_angle = math.radians(20)
-                p1x = tip_x - head_size * math.cos(tgt.theta + head_angle)
-                p1y = tip_y - head_size * math.sin(tgt.theta + head_angle)
-                p2x = tip_x - head_size * math.cos(tgt.theta - head_angle)
-                p2y = tip_y - head_size * math.sin(tgt.theta - head_angle)
-
-                vec_x.extend([tgt.x, tip_x, p1x, np.nan, tip_x, p2x, np.nan])
-                vec_y.extend([tgt.y, tip_y, p1y, np.nan, tip_y, p2y, np.nan])
-
-        self.targets_plot.setData(pts)
-        self.vectors_plot.setData(vec_x, vec_y)
-
-        x_range, y_range = self.getViewBox().viewRange()
-        self.info_text.setPos(x_range[1] - 2, y_range[1] - 10)
-
-        # Legenda (canto superior esquerdo)
-        self.legend.anchor(itemPos=(0, 0), parentPos=(0, 0), offset=(10, 10))
-        self.legend.setPos(x_range[0] + 10, y_range[1] - 10)
-
-
 class ProcessingWidget(QtWidgets.QSplitter):
     """
     Pipeline de processamento de sinal radar (Coluna 3).
@@ -789,24 +587,6 @@ class ProcessingWidget(QtWidgets.QSplitter):
       INT  (branco)  : Integrador não-coerente de N_INT PRIs.
       PPI  (azul)    : PPI estimado com histórico de hits.
     """
-
-    C          = 3e8
-    N_GUARD    = 48      # aumentado para evitar vazamento do pulso comprimido (auto-mascaramento do alvo)
-    N_TRAIN    = 256      # células para estimar o perfil de ruído local
-    # N_TRAIN    = 96      # células para estimar o perfil de ruído local
-    K_CFAR     = 10     # limiar multiplicativo ajustado para sinal pós-integrador (N_INT=8)
-    N_INT      = 8       # número de PRIs para integração não-coerente
-    H_HITS     = 4096    # histórico máximo de detecções no PPI estimado (aumentado substancialmente)
-    MIN_CFAR_ABS = 1000.0   # threshold absoluto mínimo — suprime falsos alarmes em AWGN puro
-    # MIN_CFAR_ABS = 10.0   # threshold absoluto mínimo — suprime falsos alarmes em AWGN puro
-
-    # Distância máxima (m) para considerar que uma detecção CFAR corresponde a um alvo real
-    MAX_MATCH_DIST = 90.0
-
-    # Amplitude mínima dos eixos Y (evita variação do eixo com ruído puro)
-    MIN_Y_MTI  = 60.0    # unidades do filtro casado após subtração MTI
-    MIN_Y_INT  = 60.0    # unidades após integração não-coerente de N_INT PRIs
-    MIN_Y_CFAR = 150.0    # unidades do eixo do CA-CFAR
 
     def __init__(self, ppi: PPI, pulse_widget, coherent_integration: bool = False, normalize_plots: bool = True):
         super().__init__(QtCore.Qt.Vertical)
@@ -821,42 +601,18 @@ class ProcessingWidget(QtWidgets.QSplitter):
         self.top_glw.setBackground('k')
         self.top_glw.ci.layout.setSpacing(8)
 
-        self.bottom_glw = pg.GraphicsLayoutWidget()
-        self.bottom_glw.setBackground('k')
-
         self.addWidget(self.top_glw)
-        self.addWidget(self.bottom_glw)
 
-        # Usando multiplicador de CFAR empírico (devido à integração de múltiplos PRIs a PDF do ruído muda para Erlang/Gamma, invalidando a velha fórmula exp)
-        self.alpha = self.K_CFAR
+        # Inicializa modulos
+        self.mti = MTI(N_SAMPLES)
+        self.integrator = PulseIntegrator(N_INT, coherent_integration)
+        self.ppi_tracker = PPIEstimatedTracker(h_hits=4096, max_match_dist=MAX_MATCH_DIST)
+        self.alpha = K_CFAR
 
-        N    = pulse_widget.N
         t_us = pulse_widget.t_us
         r_max = ppi.r_max
 
-        # Estado interno
-        self._mf_prev = np.zeros(N)
-        self._mf_prev_complex = np.zeros(N, dtype=complex)  # para estimativa de desvio doppler
-        from collections import deque
-        # Buffer para integração Não-Coerente (potências reais)
-        self._int_buffer: deque = deque(maxlen=self.N_INT)
-        # Buffer para integração Coerente (amplitudes complexas)
-        self._coh_buffer: deque = deque(maxlen=self.N_INT)
-        # Rastro de detecções do PPI Estimado (acumulativo)
-        # True detections (red)
-        self._trail_xs: deque = deque(maxlen=self.H_HITS)
-        self._trail_ys: deque = deque(maxlen=self.H_HITS)
-        self._trail_az: deque = deque(maxlen=self.H_HITS)
-        self._trail_vr: deque = deque(maxlen=self.H_HITS)  # velocidade radial estimada por ponto
-        self._last_detected_vrs: list[float] = [0.0]  # Armazena as últimas velocidades detectadas
-        # False alarms (yellow)
-        self._fa_xs: deque = deque(maxlen=self.H_HITS)
-        self._fa_ys: deque = deque(maxlen=self.H_HITS)
-        self._fa_az: deque = deque(maxlen=self.H_HITS)
-        # Contadores acumulados
-        self._total_true: int = 0
-        self._total_fa:   int = 0
-        self._prev_az_deg: float | None = None
+        self._mf_prev_complex = np.zeros(N_SAMPLES, dtype=complex)  # para estimativa de desvio doppler
 
         # ── Plot 0 — MTI ───────────────────────────────────────────────
         self.mti_plot = self.top_glw.addPlot(row=0, col=0)
@@ -866,7 +622,7 @@ class ProcessingWidget(QtWidgets.QSplitter):
         self.mti_plot.setYRange(0, 10)
         self.mti_plot.setMouseEnabled(x=False, y=False)
         self.mti_curve = self.mti_plot.plot(
-            t_us, np.zeros(N), pen=pg.mkPen((255, 255, 0), width=1)
+            t_us, np.zeros(N_SAMPLES), pen=pg.mkPen((255, 255, 0), width=1)
         )
 
         # ── Plot 1 — Integrador Não-Coerente ──────────────────────────
@@ -878,9 +634,8 @@ class ProcessingWidget(QtWidgets.QSplitter):
         self.int_plot.setMouseEnabled(x=False, y=False)
         self.int_plot.setXLink(self.mti_plot)
         self.int_curve = self.int_plot.plot(
-            t_us, np.zeros(N), pen=pg.mkPen((210, 210, 210), width=1)
+            t_us, np.zeros(N_SAMPLES), pen=pg.mkPen((210, 210, 210), width=1)
         )
-        # Legenda do modo de integração (canto superior esquerdo, mesmo estilo do CFAR)
         self.int_legend = self.int_plot.addLegend(colCount=1)
         self.int_legend.setBrush(pg.mkBrush(0, 0, 0, 160))
         self.int_legend.anchor(itemPos=(0, 0), parentPos=(0, 0), offset=(0, 0))
@@ -888,7 +643,7 @@ class ProcessingWidget(QtWidgets.QSplitter):
         _dummy_int = pg.PlotDataItem(pen=pg.mkPen((210, 210, 210), width=1))
         self.int_legend.addItem(_dummy_int, f"Mode: {_mode_str}")
 
-        # ── Plot 2 — CA-CFAR (aplicado sobre o integrador) ────────────────
+        # ── Plot 2 — CA-CFAR ──────────────────────────────────────────
         self.cfar_plot = self.top_glw.addPlot(row=2, col=0)
         self.cfar_plot.setLabel('left', 'CA-CFAR')
         self.cfar_plot.getAxis('left').setWidth(65)
@@ -899,14 +654,13 @@ class ProcessingWidget(QtWidgets.QSplitter):
         self.cfar_plot.setXLink(self.mti_plot)
         self.cfar_legend = self.cfar_plot.addLegend(colCount=2)
         self.cfar_legend.setBrush(pg.mkBrush(0, 0, 0, 160))
-        # Move a legenda para o canto superior esquerdo, dividida em colunas (1 linha)
         self.cfar_legend.anchor(itemPos=(0, 0), parentPos=(0, 0), offset=(0, 0))
         
         self.cfar_sig_curve = self.cfar_plot.plot(
-            t_us, np.zeros(N), pen=pg.mkPen((0, 190, 255), width=1), name="Sinal (Rx)"
+            t_us, np.zeros(N_SAMPLES), pen=pg.mkPen((0, 190, 255), width=1), name="Sinal (Rx)"
         )
         self.cfar_thr_curve = self.cfar_plot.plot(
-            t_us, np.zeros(N),
+            t_us, np.zeros(N_SAMPLES),
             pen=pg.mkPen((255, 80, 80), width=1, style=QtCore.Qt.DashLine), name="Threshold CFAR"
         )
         self.cfar_spots = pg.ScatterPlotItem(
@@ -914,192 +668,57 @@ class ProcessingWidget(QtWidgets.QSplitter):
         )
         self.cfar_plot.addItem(self.cfar_spots)
 
-        # ── Plot 3 — PPI Estimado ───────────────────────────────────────
-        self.ppi_est_plot = self.bottom_glw.addPlot(row=0, col=0)
-        self.ppi_est_plot.setLabel('left', 'PPI Estimado', color='#00AAFF', size='12pt')
-        self.ppi_est_plot.setAspectLocked(True)
-        self.ppi_est_plot.hideAxis('bottom')
-        self.ppi_est_plot.hideAxis('left')
-        self.ppi_est_plot.setXRange(-r_max, r_max)
-        self.ppi_est_plot.setYRange(-r_max, r_max)
-        self._draw_ppi_grid(r_max)
-        self.est_sweep = pg.PlotDataItem(pen=pg.mkPen((0, 140, 255), width=1))
-        self.ppi_est_plot.addItem(self.est_sweep)
-
-        # Pontos azuis = alvos reais detectados (vermelho)
-        self.est_spots_true = pg.ScatterPlotItem(
-            size=6, pen=pg.mkPen((200, 0, 0), width=1.0), brush=pg.mkBrush(255, 50, 50, 230), symbol='o'
-        )
-        self.ppi_est_plot.addItem(self.est_spots_true)
-
-        # Pontos amarelos = falsos alarmes
-        self.est_spots_fa = pg.ScatterPlotItem(
-            size=5, pen=pg.mkPen((200, 160, 0), width=1.0), brush=pg.mkBrush(255, 220, 0, 200), symbol='o'
-        )
-        self.ppi_est_plot.addItem(self.est_spots_fa)
-
-        # Label estático (canto superior direito)
-        self.ppi_est_label = pg.TextItem(anchor=(1, 0))
-        self.ppi_est_label.setZValue(1001)
-        self.ppi_est_plot.addItem(self.ppi_est_label)
-        self.ppi_est_label.setHtml(
-            '<div style="font-family:Consolas; font-size:12pt; color:#00AAFF;'
-            ' font-weight:bold; background-color:rgba(0,0,0,160); padding:6px;">'
-            'PPI ESTIMADO</div>'
-        )
-
-        # Legenda de contagem e velocidade (canto superior esquerdo)
-        self.vel_legend = pg.TextItem(anchor=(0, 0))
-        self.vel_legend.setZValue(1002)
-        self.ppi_est_plot.addItem(self.vel_legend)
-        self.vel_legend.setHtml(
-            '<div style="font-family:Consolas; font-size:9pt;'
-            ' background-color:rgba(0,0,0,160); padding:6px;">'
-            '<span style="color:#FFDD00;">&#11044; FAR Count: 0</span><br/>'
-            '<span style="color:#FF3333;">&#11044; DET Count: 0</span><br/>'
-            '<span style="color:#FF3333;">&#11044;</span>'
-            '<span style="color:#DDDDDD;"> V_r: <b>+0.0 m/s</b></span>'
-            '</div>'
-        )
-
-
+        # ── Plot 3 — PPI Estimado Viewer ────────────────────────────────
+        self.ppi_est_viewer = PPIEstimatedViewer(r_max=r_max)
+        self.addWidget(self.ppi_est_viewer)
+        
         # ── Proporções ─────────────────────────────────────────────────
         self.top_glw.ci.layout.setRowStretchFactor(0, 1)
         self.top_glw.ci.layout.setRowStretchFactor(1, 1)
-        self.top_glw.ci.layout.setRowStretchFactor(2, 1)
-        
+        self.top_glw.ci.layout.setRowStretchFactor(2, 1)        
         self.setSizes([1000, 1000])
 
-    # 
-
-    def _draw_ppi_grid(self, r_max: float):
-        """Grid circular do PPI estimado (tema azul-escuro)."""
-        #  Cálculo e desenho do R_min 
-        r_min = r_max / 7.0
-        c_min = QtWidgets.QGraphicsEllipseItem(-r_min, -r_min, 2 * r_min, 2 * r_min)
-        c_min.setPen(pg.mkPen((0, 120, 200), width=2))
-        self.ppi_est_plot.addItem(c_min)
-        # -
-
-        steps = 4
-        for i, r in enumerate(np.linspace(r_max / steps, r_max, steps)):
-            pen = (
-                pg.mkPen((0, 120, 200), width=2)
-                if i == steps - 1
-                else pg.mkPen((0, 60, 110), width=1, style=QtCore.Qt.DashLine)
-            )
-            c = QtWidgets.QGraphicsEllipseItem(-r, -r, 2 * r, 2 * r)
-            c.setPen(pen)
-            self.ppi_est_plot.addItem(c)
-            txt = pg.TextItem(
-                f"{int(r_max*(i+1)/steps)}m", color=(0, 140, 200), anchor=(0.5, 0)
-            )
-            txt.setPos(0, r * 0.96)
-            self.ppi_est_plot.addItem(txt)
-        for ang in range(0, 360, 30):
-            t_rad = math.radians(ang)
-            self.ppi_est_plot.addItem(
-                pg.PlotDataItem(
-                    [0, r_max * math.cos(t_rad)],
-                    [0, r_max * math.sin(t_rad)],
-                    pen=pg.mkPen((0, 60, 110), width=1),
-                )
-            )
-            # Texto do angulo
-            label_radius = r_max + 60
-            xt = label_radius * math.cos(t_rad)
-            yt = label_radius * math.sin(t_rad)
-            angle_txt = pg.TextItem(
-                html=f"""
-                <div style="
-                    color: rgb(0,140,200);
-                    font-weight: bold;
-                    font-size: 10pt;
-                    font-family: Consolas;
-                ">
-                {ang}°
-                </div>
-                """,
-                anchor=(0.5, 0.5),
-            )
-            angle_txt.setPos(xt, yt)
-            self.ppi_est_plot.addItem(angle_txt)
-
-    # 
-
-    def _ca_cfar(self, signal: np.ndarray) -> np.ndarray:
-        """CA-CFAR vectorizado via uniform_filter1d — threshold adaptativo por célula."""
-        from scipy.ndimage import uniform_filter1d
-        ng = self.N_GUARD
-        nt = self.N_TRAIN
-        win_t = 2 * (ng + nt) + 1
-        win_g = 2 * ng + 1
-        # Média móvel sobre a janela total e sobre a janela de guarda
-        # Usa mode='reflect' (ou 'nearest') em vez de 'constant' (zero) para não
-        # subestimar o piso de ruído nas bordas (o que causa falsos alarmes no início e fim do gráfico)
-        sum_t = uniform_filter1d(signal, size=win_t, mode='reflect') * win_t
-        sum_g = uniform_filter1d(signal, size=win_g, mode='reflect') * win_g
-        n_tr  = max(win_t - win_g, 1)
-        return np.maximum(self.alpha * (sum_t - sum_g) / n_tr, 0.0)
-
-    # 
-
     def update(self, pulse_data: dict) -> None:
-        """Executa o pipeline completo de processamento a partir da saída do PulseWidget."""
         import scipy.signal as ss
 
-        comp_disp   = pulse_data.get('comp_disp', np.zeros(self.pw.N))
+        comp_disp   = pulse_data.get('comp_disp', np.zeros(N_SAMPLES))
+        comp_complex = pulse_data.get('comp_complex', np.zeros(N_SAMPLES, dtype=complex))
         azimuth_deg = pulse_data.get('azimuth_deg', 0.0)
         t_us        = self.pw.t_us
-        fs          = self.pw.fs
+        fs          = (N_SAMPLES / self.pw.T_PRI)
+        r_max       = self.ppi.r_max
 
-        # ── MTI (delay-line canceller de 1 atraso) ─────────────────────
-        # Subtrai o pulso MF anterior do atual — cancela ecos fixos (clutter)
-        mti = np.abs(comp_disp - self._mf_prev)
-        self._mf_prev = comp_disp.copy()
-        peak_mti = float(np.max(mti)) if mti.any() else 0.0
+        # 1. Processamento MTI
+        mti_out = self.mti.process(comp_disp)
+        peak_mti = float(np.max(mti_out)) if mti_out.any() else 0.0
         
         if self.normalize_plots:
-            # Apenas normaliza o display (0-1); mti continua com valores originais
-            mti_disp = (mti / peak_mti) if peak_mti > 1e-30 else mti
+            mti_disp = (mti_out / peak_mti) if peak_mti > 1e-30 else mti_out
             self.mti_curve.setData(t_us, mti_disp)
             self.mti_plot.setYRange(0, 1.05)
         else:
-            self.mti_curve.setData(t_us, mti)
-            self.mti_plot.setYRange(0, max(peak_mti * 1.15, self.MIN_Y_MTI))
+            self.mti_curve.setData(t_us, mti_out)
+            self.mti_plot.setYRange(0, max(peak_mti * 1.15, MIN_Y_MTI))
 
-        # ── Integrador (Coerente ou Não-Coerente) ─────────────────────────
+        # 2. Integração
         min_dist = max(1, int(0.04 * fs))
-
-        if self.coherent_integration:
-            # Integração Coerente: soma amplitudes complexas → |soma| melhora SNR de N_INT × em amplitude
-            comp_complex = pulse_data.get('comp_complex', np.zeros(self.pw.N, dtype=complex))
-            self._coh_buffer.append(comp_complex)
-            coh_sum   = np.sum(list(self._coh_buffer), axis=0)   # soma complexa
-            integrated = np.abs(coh_sum) ** 2                     # envelope de potência
-        else:
-            # Integração Não-Coerente: soma de |mti|² dos últimos N_INT PRIs
-            self._int_buffer.append(mti ** 2)
-            integrated = np.sum(list(self._int_buffer), axis=0)
+        integrated = self.integrator.process(mti_out, comp_complex if self.coherent_integration else None)
         peak_int = float(np.max(integrated)) if integrated.any() else 0.0
         
         if self.normalize_plots:
-            # Apenas normaliza o display (0-1); integrated continua com valores originais
             int_disp = (integrated / peak_int) if peak_int > 1e-30 else integrated
             self.int_curve.setData(t_us, int_disp)
             self.int_plot.setYRange(0, 1.05)
         else:
             self.int_curve.setData(t_us, integrated)
-            self.int_plot.setYRange(0, max(peak_int * 1.15, self.MIN_Y_INT))
+            self.int_plot.setYRange(0, max(peak_int * 1.15, MIN_Y_INT))
 
-        # ── CA-CFAR (aplicado sobre a saída do integrador) ─────────────────
-        # CFAR após integração: SNR melhorado em ~10*log10(N_INT) dB
-        cfar_thresh = self._ca_cfar(integrated)
-        effective_thresh = np.maximum(cfar_thresh, self.MIN_CFAR_ABS)
+        # 3. CA-CFAR
+        cfar_thresh = ca_cfar(integrated, N_GUARD, N_TRAIN, self.alpha)
+        effective_thresh = np.maximum(cfar_thresh, MIN_CFAR_ABS)
         
+        cfar_norm_factor = max(peak_int, float(np.max(effective_thresh)))
         if self.normalize_plots:
-            # Normaliza integrador e threshold pelo mesmo fator para manter proporção no display
-            cfar_norm_factor = max(peak_int, float(np.max(effective_thresh)))
             if cfar_norm_factor > 1e-30:
                 cfar_sig_disp = integrated      / cfar_norm_factor
                 cfar_thr_disp = effective_thresh / cfar_norm_factor
@@ -1112,154 +731,52 @@ class ProcessingWidget(QtWidgets.QSplitter):
         else:
             self.cfar_sig_curve.setData(t_us, integrated)
             self.cfar_thr_curve.setData(t_us, effective_thresh)
-            y_top = max(peak_int, float(np.max(effective_thresh))) * 1.2
-            self.cfar_plot.setYRange(0, max(y_top, self.MIN_Y_CFAR))
+            y_top = cfar_norm_factor * 1.2
+            self.cfar_plot.setYRange(0, max(y_top, MIN_Y_CFAR))
 
-        # Picos detectados: integrador > threshold efetivo (usa arrays originais)
+        # Peak detection
         binary = (integrated > effective_thresh).astype(float) * integrated
         peaks_cfar, _ = ss.find_peaks(binary, distance=min_dist)
         
         if self.normalize_plots:
-            # Spots também normalizados para [0,1] pelo mesmo fator
             spots_y = (integrated[peaks_cfar] / cfar_norm_factor) if cfar_norm_factor > 1e-30 else integrated[peaks_cfar]
             self.cfar_spots.setData(t_us[peaks_cfar], spots_y)
         else:
             self.cfar_spots.setData(t_us[peaks_cfar], integrated[peaks_cfar])
 
-        # ── PPI Estimado — rastro cumulativo e deleção pela varredura ────────
-        az_deg = azimuth_deg
-        az_rad = math.radians(azimuth_deg)
-        r_max  = self.ppi.r_max
-
-        # Linha de varredura (sempre visível)
-        self.est_sweep.setData(
-            [0, r_max * math.cos(az_rad)],
-            [0, r_max * math.sin(az_rad)],
-        )
-
+        # 4. PPI Estimado Updates
         direction = -1 if (self.ppi and self.ppi.radar and self.ppi.radar.clockwise) else 1
-        clear_angle = 15.0  # Apaga 15 graus à frente da antena para formar o rastro ('fade')
+        self.ppi_tracker.update_sweep(azimuth_deg, direction)
 
-        # Filtra os pontos (true detections), limpando aqueles que a varredura está prestes a passar
-        from collections import deque
-        new_xs, new_ys, new_az, new_vr = [], [], [], []
-        for x, y, pt_az, vr in zip(self._trail_xs, self._trail_ys, self._trail_az, self._trail_vr):
-            diff = (pt_az - az_deg + 180) % 360 - 180
-            is_ahead = (diff * direction > 0) and (abs(diff) < clear_angle)
-            if not is_ahead:
-                new_xs.append(x)
-                new_ys.append(y)
-                new_az.append(pt_az)
-                new_vr.append(vr)
-        self._trail_xs = deque(new_xs, maxlen=self.H_HITS)
-        self._trail_ys = deque(new_ys, maxlen=self.H_HITS)
-        self._trail_az = deque(new_az, maxlen=self.H_HITS)
-        self._trail_vr = deque(new_vr, maxlen=self.H_HITS)
-
-        # Filtra os pontos (false alarms)
-        new_fa_xs, new_fa_ys, new_fa_az = [], [], []
-        for x, y, pt_az in zip(self._fa_xs, self._fa_ys, self._fa_az):
-            diff = (pt_az - az_deg + 180) % 360 - 180
-            is_ahead = (diff * direction > 0) and (abs(diff) < clear_angle)
-            if not is_ahead:
-                new_fa_xs.append(x)
-                new_fa_ys.append(y)
-                new_fa_az.append(pt_az)
-        self._fa_xs = deque(new_fa_xs, maxlen=self.H_HITS)
-        self._fa_ys = deque(new_fa_ys, maxlen=self.H_HITS)
-        self._fa_az = deque(new_fa_az, maxlen=self.H_HITS)
-
-        # ── Estimação de velocidade radial por desvio de fase (Doppler instantâneo) ───
-        comp_complex = pulse_data.get('comp_complex', np.zeros(self.pw.N, dtype=complex))
-        lam = self.C / 10e9  # comprimento de onda (banda X, 10 GHz)
+        lam = C / 10e9
         delta_phi = np.angle(np.conj(self._mf_prev_complex) * comp_complex)
-        vr_map = delta_phi / (2.0 * np.pi * self.pw.T_PRI) * lam / 2.0  # m/s por amostra
+        vr_map = delta_phi / (2.0 * np.pi * self.pw.T_PRI) * lam / 2.0
         self._mf_prev_complex = comp_complex.copy()
 
-        # ── Coleta as posições reais dos alvos do PPI ──────────────────────────
         real_targets = [(tgt.x, tgt.y) for tgt in self.ppi.targets] if self.ppi else []
+        az_rad = math.radians(azimuth_deg)
 
-        # ── Adiciona nova detecção CFAR ao rastro (com classificação) ──────────
-        # CORREÇÃO DE BIAS DE RANGE:
-        # correlate(mode='same') desloca o pico +( n_p-1)//2 amostras.
-        # np.roll(+n_p//2) em PulseWidget adiciona mais n_p//2 amostras.
-        # Total: n_p - 1 amostras de offset → erro ≈ r_max/7 ≈ 171m para r_max=1200m.
-        # Subtraímos esse offset ao converter índice de pico em range.
-        _mf_range_offset = self.pw.n_p - 1  # amostras de offset introduzidas pela cadeia MF
-
-        new_true_vrs: list[float] = []  # velocidades das verdadeiras detecções neste PRI
+        _mf_range_offset = self.pw.n_p - 1
+        new_true_vrs = []
         if len(peaks_cfar) > 0:
             r_min_blind = r_max * 0.07
             for p in peaks_cfar:
                 p_corrected = max(0, p - _mf_range_offset)
-                range_est = self.C * self.pw.t[p_corrected] / 2.0
+                range_est = C * self.pw.t[p_corrected] / 2.0
                 if not (r_min_blind < range_est < r_max):
                     continue
                 det_x = range_est * math.cos(az_rad)
                 det_y = range_est * math.sin(az_rad)
+                vr_est = float(vr_map[p])
 
-                # Verifica se há alvo real próximo (dentro de MAX_MATCH_DIST)
-                matched = False
-                for (tx, ty) in real_targets:
-                    if math.hypot(det_x - tx, det_y - ty) <= self.MAX_MATCH_DIST:
-                        matched = True
-                        break
+                is_true, vr = self.ppi_tracker.add_detection(det_x, det_y, azimuth_deg, vr_est, real_targets)
+                if is_true:
+                    new_true_vrs.append(vr)
 
-                if matched:
-                    # Detecção verdadeira → ponto vermelho + velocidade
-                    vr_est = float(vr_map[p])
-                    self._trail_xs.append(det_x)
-                    self._trail_ys.append(det_y)
-                    self._trail_az.append(az_deg)
-                    self._trail_vr.append(vr_est)
-                    new_true_vrs.append(vr_est)
-                    self._total_true += 1
-                else:
-                    # Falso alarme → ponto amarelo, sem velocidade
-                    self._fa_xs.append(det_x)
-                    self._fa_ys.append(det_y)
-                    self._fa_az.append(az_deg)
-                    self._total_fa += 1
-
-        # ── Renderiza o rastro separado por cores ──────────────────────────────
-        if self._trail_xs:
-            self.est_spots_true.setData(list(self._trail_xs), list(self._trail_ys))
-        else:
-            self.est_spots_true.setData([], [])
-
-        if self._fa_xs:
-            self.est_spots_fa.setData(list(self._fa_xs), list(self._fa_ys))
-        else:
-            self.est_spots_fa.setData([], [])
-
-        # ── Atualiza legenda no canto superior esquerdo ────────────────────────
-        # Se houve novas detecções, atualiza a lista de últimas velocidades.
-        # Caso contrário, mantém o que já estava (persistente).
         if new_true_vrs:
-            self._last_detected_vrs = new_true_vrs.copy()
+            self.ppi_tracker.last_detected_vrs = new_true_vrs.copy()
 
-        legend_lines = [
-            f'<span style="color:#FFDD00;">&#11044; FAR Count: {self._total_fa}</span>',
-            f'<span style="color:#FF3333;">&#11044; DET Count: {self._total_true}</span>',
-        ]
-        for vr in self._last_detected_vrs:
-            legend_lines.append(
-                f'<span style="color:#FF3333;">&#11044;</span>'
-                f'<span style="color:#DDDDDD;"> V_r: <b>{vr:+.1f} m/s</b></span>'
-            )
-        legend_html = (
-            '<div style="font-family:Consolas; font-size:10pt;'
-            ' background-color:rgba(0,0,0,170); padding:6px;">'
-            + '<br/>'.join(legend_lines)
-            + '</div>'
-        )
-        self.vel_legend.setHtml(legend_html)
-
-        # Atualiza as posições fixas dos dois textos
-        x_range, y_range = self.ppi_est_plot.getViewBox().viewRange()
-        self.ppi_est_label.setPos(x_range[1] - 10, y_range[1] - 10)
-        self.vel_legend.setPos(x_range[0] + 10, y_range[1] - 10)
-
+        self.ppi_est_viewer.update_view(self.ppi_tracker, az_rad)
 
 class MainWindow(QtWidgets.QMainWindow):
     """
