@@ -1,4 +1,4 @@
-::: radar_components.antenna
+::: radarutils.simulator.simulator
     options:
         extra:
             show_docstring: true

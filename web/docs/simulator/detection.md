@@ -1,4 +1,4 @@
-::: radar_components.radar
+::: radarutils.simulator.detection
     options:
         extra:
             show_docstring: true

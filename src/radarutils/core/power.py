@@ -75,7 +75,7 @@ def linear_to_db(linear: float) -> float:
 
 
 class CalcRadarPower:
-    """
+    r"""
     To calculate the power received ($P_r$) by a radar system, we can use the radar range equation, which is given by: 
 
     $$

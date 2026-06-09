@@ -1,4 +1,4 @@
-::: core.basics
+::: radarutils.simulator.html_contents
     options:
         extra:
             show_docstring: true

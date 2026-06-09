@@ -1,4 +1,4 @@
-::: visualization.plotter
+::: radarutils.simulator.clutter
     options:
         extra:
             show_docstring: true

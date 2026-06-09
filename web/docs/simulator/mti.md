@@ -1,4 +1,4 @@
-::: radar_components.wave
+::: radarutils.simulator.mti
     options:
         extra:
             show_docstring: true
