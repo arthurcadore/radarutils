@@ -6,7 +6,7 @@ import numpy as np
 from radarutils.simulator.ppi import PPI
 
 class Simulator:
-    """
+    r"""
     Controla a simulação do radar PPI.
 
     Todos os parâmetros de configuração (radar, targets, dimensões, tempo)
@@ -21,12 +21,14 @@ class Simulator:
         t: float = 10.0,
         r_max: float = 1000.0,
     ):
-        """
+        r"""
+        Constructor methodology that initializes the simulator instance.
+
         Args:
-            dimensions: Dimensões do espaço de simulação em metros (largura, altura).
-            dt:         Passo de tempo em segundos.
-            t:          Duração total da simulação em segundos.
-            r_max:      Alcance máximo do radar em metros.
+            dimensions (tuple[int, int]): Dimensões do espaço de simulação em metros (largura, altura).
+            dt (float): Passo de tempo em segundos.
+            t (float): Duração total da simulação em segundos.
+            r_max (float): Alcance máximo do radar em metros.
         """
         self.ppi = PPI(dimensions=dimensions, dt=dt, t=t)
         self.ppi.r_max = r_max
@@ -63,7 +65,7 @@ class Simulator:
         deg_step: float = 0.1,
         irradPattern=None,
     ):
-        """Adiciona (e configura) o radar ao PPI."""
+        r"""Adiciona (e configura) o radar ao PPI."""
         self.ppi.add_radar(
             pt=pt,
             gt=gt,
@@ -77,7 +79,7 @@ class Simulator:
         )
 
     def add_target(self, x: float, y: float, vel: float = 0, acc: float = 0, theta: float = 0):
-        """Adiciona um target cartesiano estático ou com movimento linear."""
+        r"""Adiciona um target cartesiano estático ou com movimento linear."""
         self.ppi.add_target(x, y, vel, acc, theta)
 
     def add_orbital_target(
@@ -88,7 +90,7 @@ class Simulator:
         clockwise: bool = False,
         alpha_start: float = 0,
     ):
-        """Adiciona um target com movimento orbital circular."""
+        r"""Adiciona um target com movimento orbital circular."""
         self.ppi.add_orbital_target(r, speed, acceleration, clockwise, alpha_start)
 
     def add_nested_orbital_target(
@@ -104,7 +106,7 @@ class Simulator:
         alpha1_start: float = 0,
         alpha2_start: float = 0,
     ):
-        """Adiciona um target com movimento epicíclico (órbita dentro de órbita)."""
+        r"""Adiciona um target com movimento epicíclico (órbita dentro de órbita)."""
         self.ppi.add_nested_orbital_target(
             r1, speed1, acc1, r2, speed2, acc2,
             clockwise1, clockwise2,
@@ -114,18 +116,18 @@ class Simulator:
     def run(self, gui: bool = True, show_vectors: bool = False, output_file: str = None,
             coherent_integration: bool = False, clutter_type: str = "None", normalize_plots: bool = True,
             max_video_mb: float = None, video_quality: int = 8):
-        """
+        r"""
         Executa a simulação.
 
         Args:
-            gui:                 Se True, roda sem interface gráfica (apenas terminal).
-            show_vectors:        (modo com tela) Exibe vetores de velocidade dos targets.
-            output_file:         (modo com tela) Caminho para salvar o vídeo MP4. None = sem gravação.
-            coherent_integration: Se True, usa integração coerente (soma de amplitudes IQ).
-                                  Se False (padrão), usa integração não-coerente (soma de potências).
-            normalize_plots:      Se True, normaliza os gráficos da terceira coluna (e Filtro Casado) de 0 a 1.
-            max_video_mb:         Tamanho máximo em MB para o vídeo gerado. A simulação para ao atingir.
-            video_quality:        Qualidade do vídeo (0-10). Padrão: 8.
+            gui (bool): Se True, roda sem interface gráfica (apenas terminal).
+            show_vectors (bool): (modo com tela) Exibe vetores de velocidade dos targets.
+            output_file (str): (modo com tela) Caminho para salvar o vídeo MP4. None = sem gravação.
+            coherent_integration (bool): Se True, usa integração coerente (soma de amplitudes IQ). Se False (padrão), usa integração não-coerente (soma de potências).
+            clutter_type (str): Tipo de clutter a ser aplicado.
+            normalize_plots (bool): Se True, normaliza os gráficos da terceira coluna (e Filtro Casado) de 0 a 1.
+            max_video_mb (float): Tamanho máximo em MB para o vídeo gerado. A simulação para ao atingir.
+            video_quality (int): Qualidade do vídeo (0-10). Padrão: 8.
         """
         if gui:
             self._run_headless()
@@ -142,25 +144,25 @@ class Simulator:
 
     @property
     def detection_log(self):
-        """Acesso direto ao DetectionLog acumulado pelo PPI."""
+        r"""Acesso direto ao DetectionLog acumulado pelo PPI."""
         return self.ppi.detection_log
 
     def export(self, path: str = "detections.csv") -> str:
-        """
+        r"""
         Exporta todas as detecções acumuladas para um arquivo CSV.
 
         Args:
-            path: Caminho do arquivo de saída.
+            path (str): Caminho do arquivo de saída.
 
         Returns:
-            Caminho resolvido do arquivo criado.
+            output (str): Caminho resolvido do arquivo criado.
         """
         output = self.ppi.detection_log.export(path)
         print(f"Detections exported to: {output}  ({len(self.ppi.detection_log)} records)")
         return str(output)
 
     def _run_headless(self):
-        """Loop de simulação sem interface gráfica."""
+        r"""Loop de simulação sem interface gráfica."""
         print("=== Simulator running (headless) ===")
         while self.ppi.elapsed_time < self.ppi.t:
             self.ppi.update()
@@ -169,7 +171,7 @@ class Simulator:
     def _run_with_screen(self, show_vectors: bool = False, output_file: str = None,
                          coherent_integration: bool = False, clutter_type: str = "None", normalize_plots: bool = True,
                          max_video_mb: float = None, video_quality: int = 8) -> int:
-        """Abre a janela Qt e executa o loop de eventos. Retorna o exit code."""
+        r"""Abre a janela Qt e executa o loop de eventos. Retorna o exit code."""
         import pyqtgraph as pg
         from PySide6 import QtWidgets
         from radarutils.simulator.screen import MainWindow
@@ -326,7 +328,7 @@ if __name__ == '__main__':
         gui=args.gui,
         show_vectors=not args.no_vectors,
         output_file=output_path,
-        coherent_integration=True,
+        coherent_integration=False,
         clutter_type=args.clutter,
         normalize_plots=not args.no_normalize,
         max_video_mb=args.max_mb,

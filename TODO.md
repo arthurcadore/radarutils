@@ -16,4 +16,4 @@ Existem funções prontas para simular esse tipo de ruído (Dica: randn do matla
 • Considerem diferentes valores de threshold (suficientes para permitir a construção
 de uma curva ROC). Em geral, entre 6 e 10 valores de threshold são suficientes para
 se traçar uma curva ROC.
-• Os valores de threshold podem ser obtidos empiricamente, baseado em testes.
+• Os valores de threshold podem ser obtidos empiricamente, baseado em testes

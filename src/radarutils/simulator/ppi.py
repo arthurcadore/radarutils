@@ -6,6 +6,14 @@ from PySide6 import QtCore, QtWidgets, QtGui
 from .component import Radar, Target, OrbitalTarget, NestedOrbitalTarget
 from .detection import DetectionLog, DetectionRecord
 from .constants import WAVELENGTH_M, RCS_DEFAULT_M2, FOUR_PI_3
+from .html_contents import (
+    PPI_REAL_LABEL_HTML,
+    get_ppi_real_angle_html,
+    PPI_ESTIMATED_LABEL_HTML,
+    PPI_ESTIMATED_INITIAL_LEGEND_HTML,
+    get_ppi_est_angle_html,
+    get_ppi_est_legend_html,
+)
 
 class PPI(): 
     def __init__(self, dimensions: tuple[int, int] = (1000, 1000), t=10, dt=0.0001):
@@ -235,20 +243,7 @@ class PPIViewer(pg.PlotWidget):
         self.info_text = pg.TextItem(anchor=(1, 0))
         self.info_text.setZValue(1001)
         self.addItem(self.info_text)
-        self.info_text.setHtml(
-            """
-            <div style="
-                font-family: Consolas;
-                font-size: 12pt;
-                color: #00FF00;
-                font-weight: bold;
-                background-color: rgba(0,0,0,160);
-                padding: 6px;
-            ">
-            PPI REAL
-            </div>
-            """
-        )
+        self.info_text.setHtml(PPI_REAL_LABEL_HTML)
 
         self.vectors_plot = pg.PlotDataItem(pen=pg.mkPen((255, 255, 255, 150), width=1))
         self.addItem(self.vectors_plot)
@@ -302,16 +297,7 @@ class PPIViewer(pg.PlotWidget):
             xt = label_radius * math.cos(t)
             yt = label_radius * math.sin(t)
             angle_txt = pg.TextItem(
-                html=f"""
-                <div style="
-                    color: rgb(0,220,0);
-                    font-weight: bold;
-                    font-size: 10pt;
-                    font-family: Consolas;
-                ">
-                {ang}°
-                </div>
-                """,
+                html=get_ppi_real_angle_html(ang),
                 anchor=(0.5, 0.5),
             )
             angle_txt.setPos(xt, yt)
@@ -491,24 +477,12 @@ class PPIEstimatedViewer(pg.PlotWidget):
         self.ppi_est_label = pg.TextItem(anchor=(1, 0))
         self.ppi_est_label.setZValue(1001)
         self.addItem(self.ppi_est_label)
-        self.ppi_est_label.setHtml(
-            '<div style="font-family:Consolas; font-size:12pt; color:#00AAFF;'
-            ' font-weight:bold; background-color:rgba(0,0,0,160); padding:6px;">'
-            'PPI ESTIMADO</div>'
-        )
+        self.ppi_est_label.setHtml(PPI_ESTIMATED_LABEL_HTML)
 
         self.vel_legend = pg.TextItem(anchor=(0, 0))
         self.vel_legend.setZValue(1002)
         self.addItem(self.vel_legend)
-        self.vel_legend.setHtml(
-            '<div style="font-family:Consolas; font-size:9pt;'
-            ' background-color:rgba(0,0,0,160); padding:6px;">'
-            '<span style="color:#FFDD00;">&#11044; FAR Count: 0</span><br/>'
-            '<span style="color:#FF3333;">&#11044; DET Count: 0</span><br/>'
-            '<span style="color:#FF3333;">&#11044;</span>'
-            '<span style="color:#DDDDDD;"> V_r: <b>+0.0 m/s</b></span>'
-            '</div>'
-        )
+        self.vel_legend.setHtml(PPI_ESTIMATED_INITIAL_LEGEND_HTML)
 
     def _draw_grid(self):
         r_min = self.r_max / 7.0
@@ -544,16 +518,7 @@ class PPIEstimatedViewer(pg.PlotWidget):
             xt = label_radius * math.cos(t_rad)
             yt = label_radius * math.sin(t_rad)
             angle_txt = pg.TextItem(
-                html=f'''
-                <div style="
-                    color: rgb(0,140,200);
-                    font-weight: bold;
-                    font-size: 10pt;
-                    font-family: Consolas;
-                ">
-                {ang}°
-                </div>
-                ''',
+                html=get_ppi_est_angle_html(ang),
                 anchor=(0.5, 0.5),
             )
             angle_txt.setPos(xt, yt)
@@ -574,20 +539,8 @@ class PPIEstimatedViewer(pg.PlotWidget):
         else:
             self.est_spots_fa.setData([], [])
 
-        legend_lines = [
-            f'<span style="color:#FFDD00;">&#11044; FAR Count: {tracker.total_fa}</span>',
-            f'<span style="color:#FF3333;">&#11044; DET Count: {tracker.total_true}</span>',
-        ]
-        for vr in tracker.last_detected_vrs:
-            legend_lines.append(
-                f'<span style="color:#FF3333;">&#11044;</span>'
-                f'<span style="color:#DDDDDD;"> V_r: <b>{vr:+.1f} m/s</b></span>'
-            )
-        legend_html = (
-            '<div style="font-family:Consolas; font-size:10pt;'
-            ' background-color:rgba(0,0,0,170); padding:6px;">'
-            + '<br/>'.join(legend_lines)
-            + '</div>'
+        legend_html = get_ppi_est_legend_html(
+            tracker.total_fa, tracker.total_true, tracker.last_detected_vrs
         )
         self.vel_legend.setHtml(legend_html)
 
