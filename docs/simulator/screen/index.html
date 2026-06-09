@@ -8,28 +8,28 @@
       
       
       
-        <link rel="canonical" href="https://github.com/arthurcadore/radarutils/docs/wave/">
+        <link rel="canonical" href="https://github.com/arthurcadore/radarutils/docs/simulator/screen/">
       
       
-        <link rel="prev" href="../core/power/">
+        <link rel="prev" href="../simulator/">
       
       
-        <link rel="next" href="../antenna/">
+        <link rel="next" href="../pulse_modulation/">
       
       
-      <link rel="icon" href="../../assets/icon.svg">
+      <link rel="icon" href="../../../assets/icon.svg">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.16">
     
     
       
-        <title>Wave Front - Radar Utils Library</title>
+        <title>Screen - Radar Utils Library</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.7e37652d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -48,13 +48,13 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="../../stylesheets/custom.css">
+      <link rel="stylesheet" href="../../../stylesheets/custom.css">
     
-      <link rel="stylesheet" href="../../site/styles.css">
+      <link rel="stylesheet" href="../../../site/styles.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#radar_components.wave" class="md-skip">
+        <a href="#radarutils.simulator.screen" class="md-skip">
           Skip to content
         </a>
       
@@ -94,9 +94,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Radar Utils Library" class="md-header__button md-logo" aria-label="Radar Utils Library" data-md-component="logo">
+    <a href="../../.." title="Radar Utils Library" class="md-header__button md-logo" aria-label="Radar Utils Library" data-md-component="logo">
       
-  <img src="../../assets/icon.svg" alt="logo">
+  <img src="../../../assets/icon.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -113,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Wave Front
+              Screen
             
           </span>
         </div>
@@ -226,7 +226,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../.." class="md-tabs__link">
+      <a href="../../.." class="md-tabs__link">
         
   
   
@@ -247,7 +247,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../guide_pip/" class="md-tabs__link">
+        <a href="../../../guide_pip/" class="md-tabs__link">
           
   
   
@@ -267,7 +267,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../basics/" class="md-tabs__link">
+        <a href="../../core/basics/" class="md-tabs__link">
           
   
   
@@ -288,44 +288,12 @@
   
     
     
-      
-  
-  
-  
-    
-  
-  
-    
-    
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+        <a href="../simulator/" class="md-tabs__link">
           
   
   
-  Simulations
-
-        </a>
-      </li>
-    
-  
-
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../plotter/" class="md-tabs__link">
-          
-  
-  
-  Plots
+  Simulator
 
         </a>
       </li>
@@ -357,9 +325,9 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Radar Utils Library" class="md-nav__button md-logo" aria-label="Radar Utils Library" data-md-component="logo">
+    <a href="../../.." title="Radar Utils Library" class="md-nav__button md-logo" aria-label="Radar Utils Library" data-md-component="logo">
       
-  <img src="../../assets/icon.svg" alt="logo">
+  <img src="../../../assets/icon.svg" alt="logo">
 
     </a>
     Radar Utils Library
@@ -386,7 +354,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href="../../.." class="md-nav__link">
         
   
   
@@ -453,7 +421,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide_pip/" class="md-nav__link">
+      <a href="../../../guide_pip/" class="md-nav__link">
         
   
   
@@ -476,7 +444,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../changelog/" class="md-nav__link">
+      <a href="../../../changelog/" class="md-nav__link">
         
   
   
@@ -551,7 +519,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../basics/" class="md-nav__link">
+      <a href="../../core/basics/" class="md-nav__link">
         
   
   
@@ -574,12 +542,35 @@
   
   
     <li class="md-nav__item">
-      <a href="../core/power/" class="md-nav__link">
+      <a href="../../core/power/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     Power
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../core/probability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Probability
     
   </span>
   
@@ -630,7 +621,7 @@
   
   
   <span class="md-ellipsis">
-    Simulations
+    Simulator
     
   </span>
   
@@ -641,7 +632,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Simulations
+            Simulator
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -649,49 +640,24 @@
                 
   
   
-    
   
   
-  
-    
-    
-    
-    
-      
-      
+    <li class="md-nav__item">
+      <a href="../simulator/" class="md-nav__link">
         
-          
-          
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" checked>
-        
-          
-          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="">
-            
   
   
   <span class="md-ellipsis">
-    Basic Components
+    Simulator
     
   </span>
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_4_1">
-            <span class="md-nav__icon md-icon"></span>
-            Basic Components
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -712,7 +678,7 @@
   
   
   <span class="md-ellipsis">
-    Wave Front
+    Screen
     
   </span>
   
@@ -725,7 +691,7 @@
   
   
   <span class="md-ellipsis">
-    Wave Front
+    Screen
     
   </span>
   
@@ -746,26 +712,26 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#radar_components.wave" class="md-nav__link">
+  <a href="#radarutils.simulator.screen" class="md-nav__link">
     <span class="md-ellipsis">
-      wave
+      screen
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#radar_components.wave.ArcComponent" class="md-nav__link">
+  <a href="#radarutils.simulator.screen.ProcessingWidget" class="md-nav__link">
     <span class="md-ellipsis">
-      ArcComponent
+      ProcessingWidget
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="ArcComponent">
+    <nav class="md-nav" aria-label="ProcessingWidget">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#radar_components.wave.ArcComponent.__init__" class="md-nav__link">
+  <a href="#radarutils.simulator.screen.ProcessingWidget.__init__" class="md-nav__link">
     <span class="md-ellipsis">
       __init__
     </span>
@@ -774,9 +740,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#radar_components.wave.ArcComponent.compute_power_db" class="md-nav__link">
+  <a href="#radarutils.simulator.screen.ProcessingWidget.update" class="md-nav__link">
     <span class="md-ellipsis">
-      compute_power_db
+      update
     </span>
   </a>
   
@@ -784,6 +750,48 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#radarutils.simulator.screen.MainWindow" class="md-nav__link">
+    <span class="md-ellipsis">
+      MainWindow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MainWindow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#radarutils.simulator.screen.MainWindow.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __init__
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#radarutils.simulator.screen.MainWindow.closeEvent" class="md-nav__link">
+    <span class="md-ellipsis">
+      closeEvent
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#radarutils.simulator.screen.prepare_output_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      prepare_output_file
+    </span>
+  </a>
   
 </li>
       
@@ -803,12 +811,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../antenna/" class="md-nav__link">
+      <a href="../pulse_modulation/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Antenna
+    Pulse Modulation
     
   </span>
   
@@ -818,62 +826,6 @@
   
 
               
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-          
-          
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
-      
-        
-        
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2" >
-        
-          
-          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="">
-            
-  
-  
-  <span class="md-ellipsis">
-    Radar And Target
-    
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_2">
-            <span class="md-nav__icon md-icon"></span>
-            Radar And Target
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -882,12 +834,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../radar/" class="md-nav__link">
+      <a href="../integrator/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Radar
+    Integrator
     
   </span>
   
@@ -898,48 +850,84 @@
 
               
             
-          </ul>
-        </nav>
-      
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mti/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MTI
+    
+  </span>
+  
+
+      </a>
     </li>
   
 
               
             
-          </ul>
-        </nav>
-      
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cfar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CFAR
+    
+  </span>
+  
+
+      </a>
     </li>
   
 
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+              
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Detection
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plots/" class="md-nav__link">
+        
   
   
   <span class="md-ellipsis">
@@ -948,15 +936,11 @@
   </span>
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            Plots
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -965,12 +949,104 @@
   
   
     <li class="md-nav__item">
-      <a href="../plotter/" class="md-nav__link">
+      <a href="../ppi/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Plotter
+    PPI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clutter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Clutter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../constants/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Constants
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../html_contents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    HTML Contents
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../component/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Components
     
   </span>
   
@@ -1007,15 +1083,38 @@
   
 
 
-  <h1>Wave Front</h1>
+  <h1>Screen</h1>
 
 <div class="doc doc-object doc-module">
 
 
 
-<a id="radar_components.wave"></a>
+<a id="radarutils.simulator.screen"></a>
     <div class="doc doc-contents first">
 
+        <p>screen.py — Orquestração da interface gráfica do simulador de radar.</p>
+
+
+<details class="responsabilidades-deste-módulo" open>
+  <summary>Responsabilidades deste módulo</summary>
+  <ul>
+<li><code>prepare_output_file()</code> : cria diretório e retorna caminho do vídeo MP4.</li>
+<li><code>ProcessingWidget</code>      : QSplitter vertical que agrupa os widgets de
+                              processamento (MTI → Integrador → CFAR → PPI Estimado).</li>
+<li><code>MainWindow</code>            : janela principal Qt com layout de 3 colunas e
+                              timer de atualização em 30 ms.</li>
+</ul>
+</details>
+
+<details class="os-widgets-individuais-são-importados-de-arquivos-especializados" open>
+  <summary>Os widgets individuais são importados de arquivos especializados</summary>
+  <p>plots.py            → DetectionPlot, AmplitudePlot, PhasePlot
+pulse_modulation.py → PulseWidget
+mti.py              → MTIWidget
+integrator.py       → IntegratorWidget
+cfar.py             → CfarWidget
+ppi.py              → PPIViewer, PPIEstimatedViewer, PPIEstimatedTracker</p>
+</details>
 
 
 
@@ -1037,15 +1136,34 @@
 
 
 
-<h2 id="radar_components.wave.ArcComponent" class="doc doc-heading">
-            <code>ArcComponent</code>
+<h2 id="radarutils.simulator.screen.ProcessingWidget" class="doc doc-heading">
+            <code>ProcessingWidget</code>
 
 
 </h2>
 
 
     <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="PySide6.QtWidgets.QSplitter">QSplitter</span></code></p>
 
+
+        <p>Pipeline de processamento de sinal radar — coluna direita da UI.</p>
+<p>Layout (QSplitter vertical):
+┌──────────────────────────────────────────────────────────┐
+│  MTI Plot        (amarelo) — cancela ecos fixos           │
+│  Integrator Plot (cinza)   — acumula SNR em N_INT PRIs   │
+│  CA-CFAR Plot    (ciano)   — threshold adaptativo        │
+├──────────────────────────────────────────────────────────┤
+│  PPI Estimado    (azul)    — rastro de detecções CFAR    │
+└──────────────────────────────────────────────────────────┘</p>
+<p>O método <code>update(pulse_data)</code> encadeia os quatro estágios e
+atualiza o PPI Estimado com as detecções do CFAR.</p>
+<p>Parâmetros de processamento (de <code>constants.py</code>):
+  N_GUARD, N_TRAIN → janelas do CA-CFAR
+  K_CFAR           → fator multiplicativo do threshold
+  N_INT            → número de PRIs integrados
+  MAX_MATCH_DIST   → raio (m) para associar detecção a alvo real</p>
 
 
 
@@ -1069,15 +1187,14 @@
 <div class="doc doc-object doc-function">
 
 
-<h3 id="radar_components.wave.ArcComponent.__init__" class="doc doc-heading">
-            <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">Pw</span><span class="p">,</span> <span class="n">Gt_lin</span><span class="p">)</span></code>
+<h3 id="radarutils.simulator.screen.ProcessingWidget.__init__" class="doc doc-heading">
+            <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">ppi</span><span class="p">,</span> <span class="n">pulse_widget</span><span class="p">,</span> <span class="n">coherent_integration</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">normalize_plots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
 
 </h3>
 
 
     <div class="doc doc-contents ">
 
-        <p>Arc component unit for a WaveFront simulation. The ArcComponent its the tinnest non redundant area of the simulation to detect a target.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1093,14 +1210,14 @@
       <tbody>
           <tr class="doc-section-item">
             <td>
-                <code>Idx</code>
+                <code>ppi</code>
             </td>
             <td>
-                  <code><span title="int">int</span></code>
+                  <code><a class="autorefs autorefs-internal" title="&lt;code&gt;PPI&lt;/code&gt; (&lt;code&gt;radarutils.simulator.ppi.PPI&lt;/code&gt;)" href="../ppi/#radarutils.simulator.ppi.PPI">PPI</a></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Index of ArcComponent of the wavefront simulation instance</p>
+                <p>Instância de PPI com radar e targets.</p>
               </div>
             </td>
             <td>
@@ -1109,14 +1226,14 @@
           </tr>
           <tr class="doc-section-item">
             <td>
-                <code>Gt</code>
+                <code>pulse_widget</code>
             </td>
             <td>
-                  <code><span title="float">float</span></code>
+                  <code><a class="autorefs autorefs-internal" title="&lt;code&gt;PulseWidget&lt;/code&gt; (&lt;code&gt;radarutils.simulator.pulse_modulation.PulseWidget&lt;/code&gt;)" href="../pulse_modulation/#radarutils.simulator.pulse_modulation.PulseWidget">PulseWidget</a></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Gain of the transmitting antenna (in <span class="arithmatex">\(dBi\)</span>).</p>
+                <p>PulseWidget da coluna do meio (fornece t_us, T_PRI, etc.).</p>
               </div>
             </td>
             <td>
@@ -1125,18 +1242,34 @@
           </tr>
           <tr class="doc-section-item">
             <td>
-                <code>R</code>
+                <code>coherent_integration</code>
             </td>
             <td>
-                  <code><span title="float">float</span></code>
+                  <code><span title="bool">bool</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Range to the target in meters (<span class="arithmatex">\(m\)</span>).</p>
+                <p>Se True, usa integração coerente no IntegratorWidget.</p>
               </div>
             </td>
             <td>
-                <em>required</em>
+                  <code>False</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>normalize_plots</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Se True, normaliza eixos Y de todos os plots para [0, 1].</p>
+              </div>
+            </td>
+            <td>
+                  <code>True</code>
             </td>
           </tr>
       </tbody>
@@ -1150,30 +1283,26 @@
 <div class="doc doc-object doc-function">
 
 
-<h3 id="radar_components.wave.ArcComponent.compute_power_db" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">compute_power_db</span><span class="p">(</span><span class="n">R</span><span class="p">)</span></code>
+<h3 id="radarutils.simulator.screen.ProcessingWidget.update" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">update</span><span class="p">(</span><span class="n">pulse_data</span><span class="p">)</span></code>
 
 </h3>
 
 
     <div class="doc doc-contents ">
 
-        <p>Arc component unit for a WaveFront simulation. To calculate the power at a distance (<span class="arithmatex">\(R\)</span>) by a radar system, we can use the radar range equation, which is given by: </p>
-<div class="arithmatex">\[
-\begin{equation}
-    P_w = \frac{P_t \cdot G_t}{(4\pi)R^2}
-\end{equation}
-\]</div>
+        <p>Executa o pipeline completo de processamento para um PRI.</p>
 
 
-<details class="where" open>
-  <summary>Where</summary>
-  <ul>
-<li><span class="arithmatex">\(P_w\)</span> is the power received by the radar in watts (<span class="arithmatex">\(W\)</span>).</li>
-<li><span class="arithmatex">\(P_t\)</span> is the transmitted power in watts (<span class="arithmatex">\(W\)</span>).</li>
-<li><span class="arithmatex">\(G_t\)</span> is the gain of the transmitting antenna.</li>
-<li><span class="arithmatex">\(R\)</span> is the range to the target in meters (<span class="arithmatex">\(m\)</span>).</li>
-</ul>
+<details class="sequência" open>
+  <summary>Sequência</summary>
+  <ol>
+<li><strong>MTI</strong>        : cancela ecos de alvos fixos.</li>
+<li><strong>Integrador</strong> : acumula SNR em N_INT PRIs.</li>
+<li><strong>CA-CFAR</strong>    : define threshold adaptativo e detecta picos.</li>
+<li><strong>PPI Estimado</strong>: converte picos em coordenadas cartesianas,
+                     classifica (verdadeiro vs. FA) e atualiza display.</li>
+</ol>
 </details>
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1189,18 +1318,315 @@
       <tbody>
           <tr class="doc-section-item">
             <td>
-                <code>R</code>
+                <code>pulse_data</code>
+            </td>
+            <td>
+                  <code><span title="dict">dict</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>dict retornado por <code>PulseWidget.update_pulse()</code>:
+          'comp_disp'    : np.ndarray — saída real do MF.
+          'comp_complex' : np.ndarray — saída complexa IQ do MF.
+          'azimuth_deg'  : float      — azimute atual do radar.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="radarutils.simulator.screen.MainWindow" class="doc doc-heading">
+            <code>MainWindow</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="PySide6.QtWidgets.QMainWindow">QMainWindow</span></code></p>
+
+
+        <p>Janela principal da interface gráfica do simulador de radar.</p>
+
+
+<details class="layout-de-3-colunas" open>
+  <summary>Layout de 3 colunas</summary>
+  <p>Coluna 1 (esq.): PPIViewer real + DetectionPlot + AmplitudePlot + PhasePlot
+Coluna 2 (mid.): PulseWidget (TX / RX / Matched Filter + cabeçalho)
+Coluna 3 (dir.): ProcessingWidget (MTI / Integrador / CFAR / PPI Estimado)</p>
+</details>        <p>A simulação avança a cada 30 ms via QTimer.  Quando <code>elapsed_time</code>
+atinge <code>t</code>, o timer para e a janela fecha automaticamente.</p>
+<p>Se <code>output_file</code> for fornecido, cada frame é capturado e gravado num
+vídeo MP4 (H.264 / yuv420p) compatível com WhatsApp.  A gravação para
+automaticamente quando <code>max_video_mb</code> é atingido (se definido).</p>
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="radarutils.simulator.screen.MainWindow.__init__" class="doc doc-heading">
+            <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">ppi</span><span class="p">,</span> <span class="n">show_vectors</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">output_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coherent_integration</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">clutter_type</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">normalize_plots</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">max_video_mb</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">video_quality</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>ppi</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="&lt;code&gt;PPI&lt;/code&gt; (&lt;code&gt;radarutils.simulator.ppi.PPI&lt;/code&gt;)" href="../ppi/#radarutils.simulator.ppi.PPI">PPI</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Instância de PPI já configurada com radar e targets.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>show_vectors</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Se True, exibe vetores de velocidade no PPIViewer.</p>
+              </div>
+            </td>
+            <td>
+                  <code>True</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>output_file</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Caminho do arquivo MP4 de saída. None = sem gravação.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>coherent_integration</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Passa para ProcessingWidget (modo de integração).</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>clutter_type</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Tipo de clutter ('None' ou 'Rayleigh').</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;None&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>normalize_plots</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Se True, normaliza eixos Y dos plots de processamento.</p>
+              </div>
+            </td>
+            <td>
+                  <code>True</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>max_video_mb</code>
             </td>
             <td>
                   <code><span title="float">float</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Range to the target in meters (<span class="arithmatex">\(m\)</span>).</p>
+                <p>Tamanho máximo do vídeo em MB. Encerra ao atingir.</p>
               </div>
             </td>
             <td>
-                <em>required</em>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>video_quality</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Qualidade de compressão do vídeo (0–10). Padrão: 8.</p>
+              </div>
+            </td>
+            <td>
+                  <code>8</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="radarutils.simulator.screen.MainWindow.closeEvent" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">closeEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Finaliza o gravador de vídeo ao fechar a janela.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="radarutils.simulator.screen.prepare_output_file" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">prepare_output_file</span><span class="p">(</span><span class="n">file_name</span><span class="o">=</span><span class="s1">&#39;simulation.mp4&#39;</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Garante que o diretório <code>data/</code> existe e retorna o caminho completo
+do arquivo de vídeo, removendo qualquer versão anterior.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>file_name</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Nome do arquivo MP4 (somente o nome, sem diretório).</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;simulation.mp4&#39;</code>
             </td>
           </tr>
       </tbody>
@@ -1217,35 +1643,22 @@
       </thead>
       <tbody>
           <tr class="doc-section-item">
-<td><code>Pr_dBW</code></td>            <td>
-                  <code><span title="float">float</span></code>
+<td><code>output_path</code></td>            <td>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Power received by the radar in decibels with respect to one watt (<span class="arithmatex">\(dBW\)</span>).</p>
+                <p>Caminho absoluto resolvido do arquivo de saída.</p>
               </div>
             </td>
           </tr>
       </tbody>
     </table>
-        <div class="referencia">
-    <b>Reference:</b>
-    <p>Merill I. Skolnik - Introduction To Radar Systems Third Edition (Pg - 18) </p>
-</div>
 
 
     </div>
 
 </div>
-
-
-
-  </div>
-
-    </div>
-
-</div>
-
 
 
 
@@ -1308,14 +1721,14 @@
     
     
       
-      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.tabs", "header.autohide", "search.suggest", "search.highlight", "toc.integrate", "content.code.copy", "content.code.highlight", "content.tooltips", "navigation.expand", "navigation.top", "repository.icon"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.tabs", "header.autohide", "search.suggest", "search.highlight", "toc.integrate", "content.code.copy", "content.code.highlight", "content.tooltips", "navigation.expand", "navigation.top", "repository.icon"], "search": "../../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.50899def.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.50899def.min.js"></script>
       
         <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
       
-        <script src="../../site/hide_sidebar.js"></script>
+        <script src="../../../site/hide_sidebar.js"></script>
       
     
   </body>

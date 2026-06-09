@@ -8,28 +8,28 @@
       
       
       
-        <link rel="canonical" href="https://github.com/arthurcadore/radarutils/docs/antenna/">
+        <link rel="canonical" href="https://github.com/arthurcadore/radarutils/docs/simulator/mti/">
       
       
-        <link rel="prev" href="../wave/">
+        <link rel="prev" href="../integrator/">
       
       
-        <link rel="next" href="../radar/">
+        <link rel="next" href="../cfar/">
       
       
-      <link rel="icon" href="../../assets/icon.svg">
+      <link rel="icon" href="../../../assets/icon.svg">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.16">
     
     
       
-        <title>Antenna - Radar Utils Library</title>
+        <title>MTI - Radar Utils Library</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.7e37652d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -48,13 +48,13 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="../../stylesheets/custom.css">
+      <link rel="stylesheet" href="../../../stylesheets/custom.css">
     
-      <link rel="stylesheet" href="../../site/styles.css">
+      <link rel="stylesheet" href="../../../site/styles.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#radar_components.antenna" class="md-skip">
+        <a href="#radarutils.simulator.mti" class="md-skip">
           Skip to content
         </a>
       
@@ -94,9 +94,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Radar Utils Library" class="md-header__button md-logo" aria-label="Radar Utils Library" data-md-component="logo">
+    <a href="../../.." title="Radar Utils Library" class="md-header__button md-logo" aria-label="Radar Utils Library" data-md-component="logo">
       
-  <img src="../../assets/icon.svg" alt="logo">
+  <img src="../../../assets/icon.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -113,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Antenna
+              MTI
             
           </span>
         </div>
@@ -226,7 +226,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../.." class="md-tabs__link">
+      <a href="../../.." class="md-tabs__link">
         
   
   
@@ -247,7 +247,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../guide_pip/" class="md-tabs__link">
+        <a href="../../../guide_pip/" class="md-tabs__link">
           
   
   
@@ -267,7 +267,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../basics/" class="md-tabs__link">
+        <a href="../../core/basics/" class="md-tabs__link">
           
   
   
@@ -288,44 +288,12 @@
   
     
     
-      
-  
-  
-  
-    
-  
-  
-    
-    
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../wave/" class="md-tabs__link">
+        <a href="../simulator/" class="md-tabs__link">
           
   
   
-  Simulations
-
-        </a>
-      </li>
-    
-  
-
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../plotter/" class="md-tabs__link">
-          
-  
-  
-  Plots
+  Simulator
 
         </a>
       </li>
@@ -357,9 +325,9 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Radar Utils Library" class="md-nav__button md-logo" aria-label="Radar Utils Library" data-md-component="logo">
+    <a href="../../.." title="Radar Utils Library" class="md-nav__button md-logo" aria-label="Radar Utils Library" data-md-component="logo">
       
-  <img src="../../assets/icon.svg" alt="logo">
+  <img src="../../../assets/icon.svg" alt="logo">
 
     </a>
     Radar Utils Library
@@ -386,7 +354,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href="../../.." class="md-nav__link">
         
   
   
@@ -453,7 +421,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide_pip/" class="md-nav__link">
+      <a href="../../../guide_pip/" class="md-nav__link">
         
   
   
@@ -476,7 +444,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../changelog/" class="md-nav__link">
+      <a href="../../../changelog/" class="md-nav__link">
         
   
   
@@ -551,7 +519,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../basics/" class="md-nav__link">
+      <a href="../../core/basics/" class="md-nav__link">
         
   
   
@@ -574,12 +542,35 @@
   
   
     <li class="md-nav__item">
-      <a href="../core/power/" class="md-nav__link">
+      <a href="../../core/power/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     Power
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../core/probability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Probability
     
   </span>
   
@@ -630,7 +621,7 @@
   
   
   <span class="md-ellipsis">
-    Simulations
+    Simulator
     
   </span>
   
@@ -641,55 +632,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Simulations
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-    
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-          
-          
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" checked>
-        
-          
-          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="">
-            
-  
-  
-  <span class="md-ellipsis">
-    Basic Components
-    
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_4_1">
-            <span class="md-nav__icon md-icon"></span>
-            Basic Components
+            Simulator
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -700,12 +643,81 @@
   
   
     <li class="md-nav__item">
-      <a href="../wave/" class="md-nav__link">
+      <a href="../simulator/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Wave Front
+    Simulator
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../screen/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Screen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pulse_modulation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pulse Modulation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../integrator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Integrator
     
   </span>
   
@@ -735,7 +747,7 @@
   
   
   <span class="md-ellipsis">
-    Antenna
+    MTI
     
   </span>
   
@@ -748,7 +760,7 @@
   
   
   <span class="md-ellipsis">
-    Antenna
+    MTI
     
   </span>
   
@@ -769,26 +781,50 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#radar_components.antenna" class="md-nav__link">
+  <a href="#radarutils.simulator.mti" class="md-nav__link">
     <span class="md-ellipsis">
-      antenna
+      mti
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#radar_components.antenna.GainPattern" class="md-nav__link">
+  <a href="#radarutils.simulator.mti.MTI" class="md-nav__link">
     <span class="md-ellipsis">
-      GainPattern
+      MTI
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="GainPattern">
+    <nav class="md-nav" aria-label="MTI">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#radar_components.antenna.GainPattern.__init__" class="md-nav__link">
+  <a href="#radarutils.simulator.mti.MTI.process" class="md-nav__link">
+    <span class="md-ellipsis">
+      process
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#radarutils.simulator.mti.MTIWidget" class="md-nav__link">
+    <span class="md-ellipsis">
+      MTIWidget
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MTIWidget">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#radarutils.simulator.mti.MTIWidget.__init__" class="md-nav__link">
     <span class="md-ellipsis">
       __init__
     </span>
@@ -797,36 +833,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#radar_components.antenna.GainPattern.isotropic_gain" class="md-nav__link">
+  <a href="#radarutils.simulator.mti.MTIWidget.update" class="md-nav__link">
     <span class="md-ellipsis">
-      isotropic_gain
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#radar_components.antenna.GainPattern.ideal_gain" class="md-nav__link">
-    <span class="md-ellipsis">
-      ideal_gain
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#radar_components.antenna.GainPattern.sinc_gain" class="md-nav__link">
-    <span class="md-ellipsis">
-      sinc_gain
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#radar_components.antenna.GainPattern.cosine_gain" class="md-nav__link">
-    <span class="md-ellipsis">
-      cosine_gain
+      update
     </span>
   </a>
   
@@ -846,62 +855,6 @@
 
               
             
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-          
-          
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
-      
-        
-        
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2" >
-        
-          
-          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="">
-            
-  
-  
-  <span class="md-ellipsis">
-    Radar And Target
-    
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_2">
-            <span class="md-nav__icon md-icon"></span>
-            Radar And Target
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
               
                 
   
@@ -909,12 +862,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../radar/" class="md-nav__link">
+      <a href="../cfar/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Radar
+    CFAR
     
   </span>
   
@@ -925,65 +878,28 @@
 
               
             
-          </ul>
-        </nav>
-      
-    </li>
-  
-
               
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
+                
   
   
   
   
-    
-    
-    
-    
-      
-      
+    <li class="md-nav__item">
+      <a href="../detection/" class="md-nav__link">
         
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
-            
   
   
   <span class="md-ellipsis">
-    Plots
+    Detection
     
   </span>
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            Plots
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -992,12 +908,127 @@
   
   
     <li class="md-nav__item">
-      <a href="../plotter/" class="md-nav__link">
+      <a href="../plots/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Plotter
+    Plots
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ppi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PPI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clutter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Clutter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../constants/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Constants
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../html_contents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    HTML Contents
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../component/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Components
     
   </span>
   
@@ -1034,13 +1065,13 @@
   
 
 
-  <h1>Antenna</h1>
+  <h1>MTI</h1>
 
 <div class="doc doc-object doc-module">
 
 
 
-<a id="radar_components.antenna"></a>
+<a id="radarutils.simulator.mti"></a>
     <div class="doc doc-contents first">
 
 
@@ -1064,8 +1095,8 @@
 
 
 
-<h2 id="radar_components.antenna.GainPattern" class="doc doc-heading">
-            <code>GainPattern</code>
+<h2 id="radarutils.simulator.mti.MTI" class="doc doc-heading">
+            <code>MTI</code>
 
 
 </h2>
@@ -1073,6 +1104,8 @@
 
     <div class="doc doc-contents ">
 
+
+        <p>Cancelador delay-line (1 atraso) — suprime ecos fixos (Clutter).</p>
 
 
 
@@ -1096,29 +1129,16 @@
 <div class="doc doc-object doc-function">
 
 
-<h3 id="radar_components.antenna.GainPattern.__init__" class="doc doc-heading">
-            <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">res_deg</span><span class="p">,</span> <span class="n">pattern_type</span><span class="o">=</span><span class="s1">&#39;ideal&#39;</span><span class="p">,</span> <span class="n">gain_dBi</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">beamw_deg</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span></code>
+<h3 id="radarutils.simulator.mti.MTI.process" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">process</span><span class="p">(</span><span class="n">comp_disp</span><span class="p">)</span></code>
 
 </h3>
 
 
     <div class="doc doc-contents ">
 
-        <p>Gain Pattern simulation. Used to create a irradiation diagram used for futher signal propagation. The diagram simulation is devided in <span class="arithmatex">\(N\)</span> components that represents the angular resolution of the simulation based on a angle <span class="arithmatex">\(\theta\)</span>, the expression for <span class="arithmatex">\(N\)</span>: </p>
-<div class="arithmatex">\[
-\begin{equation}
-    N = \frac{360}{\theta}
-\end{equation}
-\]</div>
+        <p>Aplica o filtro MTI subtraindo o pulso anterior do atual.</p>
 
-
-<details class="where" open>
-  <summary>Where</summary>
-  <ul>
-<li><span class="arithmatex">\(N\)</span> is the number of components (ArcComponents) on the wavefront simulation.</li>
-<li><span class="arithmatex">\(\theta\)</span> is the angular precision of the wavefront simulation in degrees.</li>
-</ul>
-</details>
 
 <p><span class="doc-section-title">Parameters:</span></p>
     <table>
@@ -1133,14 +1153,140 @@
       <tbody>
           <tr class="doc-section-item">
             <td>
-                <code>res_deg</code>
+                <code>comp_disp</code>
             </td>
             <td>
-                  <code><span title="float">float</span></code>
+                  <code><span title="numpy.ndarray">ndarray</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Angular precision degree (<span class="arithmatex">\(\theta\)</span>) used for irradiation diagram precision.</p>
+                <p>Sinal atual (saída do filtro casado).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="numpy.ndarray">ndarray</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>O sinal pós-MTI (valor absoluto da diferença).</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="radarutils.simulator.mti.MTIWidget" class="doc doc-heading">
+            <code>MTIWidget</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="pyqtgraph.PlotWidget">PlotWidget</span></code></p>
+
+
+        <p>Widget de plot para a saída do filtro MTI.</p>
+<p>Herda de <code>pg.PlotWidget</code> e delega o cálculo ao <code>MTI</code> de <code>mti.py</code>.</p>
+<p>Internamente mantém o estado do pulso anterior (necessário para a
+subtração delay-line).  A cada chamada de <code>update()</code>:
+  1. Calcula |MF_atual − MF_anterior|.
+  2. Atualiza o plot (normalizado 0→1 ou em unidades absolutas).
+  3. Retorna o sinal MTI para a etapa seguinte (Integrador).</p>
+<p>Uso::</p>
+<pre><code>w = MTIWidget(t_us=pulse_widget.t_us, link_x_to=other_plot)
+mti_out = w.update(comp_disp, normalize=True)
+</code></pre>
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="radarutils.simulator.mti.MTIWidget.__init__" class="doc doc-heading">
+            <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">t_us</span><span class="p">,</span> <span class="n">link_x_to</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>t_us</code>
+            </td>
+            <td>
+                  <code><span title="numpy.ndarray">ndarray</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Eixo de tempo em µs (compartilhado com os demais plots).</p>
               </div>
             </td>
             <td>
@@ -1149,50 +1295,17 @@
           </tr>
           <tr class="doc-section-item">
             <td>
-                <code>pattern_type</code>
+                <code>link_x_to</code>
             </td>
             <td>
-                  <code><span title="string">string</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Pattern for the irradiation diagram, used for select the pattern equation.</p>
-              </div>
-            </td>
-            <td>
-                  <code>&#39;ideal&#39;</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>gain_dBi</code>
-            </td>
-            <td>
-                  <code><span title="float">float</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Max gain in dBi of the antenna. </p>
+                <p>PlotItem ao qual sincronizar o eixo X (opcional).</p>
               </div>
             </td>
             <td>
-                  <code>10</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>beamw_deg</code>
-            </td>
-            <td>
-                  <code><span title="deg">deg</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Beamwidth of the antenna (Beam from max dBi to -3dB).</p>
-              </div>
-            </td>
-            <td>
-                  <code>60</code>
+                  <code>None</code>
             </td>
           </tr>
       </tbody>
@@ -1206,92 +1319,23 @@
 <div class="doc doc-object doc-function">
 
 
-<h3 id="radar_components.antenna.GainPattern.isotropic_gain" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">isotropic_gain</span><span class="p">()</span></code>
+<h3 id="radarutils.simulator.mti.MTIWidget.update" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">update</span><span class="p">(</span><span class="n">comp_disp</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
 
 </h3>
 
 
     <div class="doc doc-contents ">
 
-        <p>Function to create a isotropic antenna, which in 2D corresponds to the same gain in all possible directions. Based on that, the equation to isotropic can be expressed as: </p>
-<div class="arithmatex">\[
-\begin{equation}
-    G(\theta, \phi) = G_i
-\end{equation}
-\]</div>
+        <p>Aplica o filtro MTI ao sinal atual e atualiza o plot.</p>
 
 
-<details class="where" open>
-  <summary>Where</summary>
-  <ul>
-<li><span class="arithmatex">\(G\)</span> is the gain of the antenna on a angle <span class="arithmatex">\(\theta\)</span> and <span class="arithmatex">\(\phi\)</span></li>
-<li><span class="arithmatex">\(G_i\)</span> is a constant of gain for the antenna.</li>
-</ul>
-</details>
+<details class="o-filtro-opera-como-cancelador-delay-line-de-1-atraso" open>
+  <summary>O filtro opera como cancelador delay-line de 1 atraso</summary>
+  <p>mti_out = |comp_disp − comp_disp_anterior|</p>
+</details>        <p>Isso cancela retornos estacionários (mesma amplitude e fase em
+PRIs consecutivos) e preserva retornos de alvos em movimento.</p>
 
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-<th>Name</th>          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-<td><code>gain_dBi_matrix</code></td>            <td>
-                  <code><span title="float">float</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Matrix of gain for <span class="arithmatex">\(\theta\)</span> and <span class="arithmatex">\(\phi\)</span>.</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-        <div class="referencia">
-    <b>Reference:</b>
-    <p>Merill I. Skolnik - Introduction To Radar Systems Third Edition (Pg - 18) </p>
-</div>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="radar_components.antenna.GainPattern.ideal_gain" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">ideal_gain</span><span class="p">(</span><span class="n">atten_db</span><span class="o">=-</span><span class="mi">40</span><span class="p">)</span></code>
-
-</h3>
-
-
-    <div class="doc doc-contents ">
-
-        <p>Function to create a ideal irradiation pattern for setorial transmission, which corresponds to the <span class="arithmatex">\(\cos\)</span> decay on beamwidth range and a very low gain outside the beamwidth range. The expression to calculate this pattern is given by: </p>
-<div class="arithmatex">\[
-    \begin{equation}
-    G(\theta) =
-    \begin{cases}
-    \cos^n(\theta), &amp; |\theta| \leq \dfrac{\theta_{3\text{dB}}}{2} \\
-    \epsilon, &amp; |\theta| &gt; \dfrac{\theta_{3\text{dB}}}{2}
-    \end{cases}
-    \end{equation}
-\]</div>
-
-
-<details class="where" open>
-  <summary>Where</summary>
-  <ul>
-<li><span class="arithmatex">\(G\)</span> is the gain of the antenna on a angle <span class="arithmatex">\(\theta\)</span>.</li>
-<li><span class="arithmatex">\(n\)</span> is a variable for the angle directivity. </li>
-<li><span class="arithmatex">\(\epsilon\)</span> is a attenuation value for outside the beamwidth (<span class="arithmatex">\(-40dB\)</span> by default).</li>
-</ul>
-</details>
 
 <p><span class="doc-section-title">Parameters:</span></p>
     <table>
@@ -1306,211 +1350,34 @@
       <tbody>
           <tr class="doc-section-item">
             <td>
-                <code>atten_db</code>
+                <code>comp_disp</code>
             </td>
             <td>
-                  <code><span title="float">float</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p><span class="arithmatex">\(\epsilon\)</span> is a attenuation value for outside the beamwidth (<span class="arithmatex">\(-40dB\)</span> by default).</p>
-              </div>
-            </td>
-            <td>
-                  <code>-40</code>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-<th>Name</th>          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-<td><code>H_plane</code></td>            <td>
-                  <code><span title="float">float</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Gain vector of irradiation pattern on Horizontal Axis.</p>
-              </div>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-<td><code>V_plane</code></td>            <td>
-                  <code><span title="float">float</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Gain vector of irradiation pattern on Vertical Axis.</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-        <div class="referencia">
-    <b>Reference:</b>
-    <p>Merill I. Skolnik - Introduction To Radar Systems Third Edition (Pg - 18) </p>
-</div>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="radar_components.antenna.GainPattern.sinc_gain" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">sinc_gain</span><span class="p">(</span><span class="n">atten_db</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span></code>
-
-</h3>
-
-
-    <div class="doc doc-contents ">
-
-        <p>Function to create an irradiation pattern based on a squared sinc function, commonly used to approximate the radiation pattern of a uniformly illuminated linear aperture. The normalized gain pattern is given by:</p>
-<div class="arithmatex">\[
-\begin{equation}
-G(\theta) = \left[ \frac{\sin(\frac{2\pi}{\theta_{3\text{dB}}} \sin(\theta))}{\frac{2\pi}{\theta_{3\text{dB}}} \sin(\theta)} \right]^2 \cdot e^{-\alpha |\theta|}
-\end{equation}
-\]</div>
-
-
-<details class="where" open>
-  <summary>Where</summary>
-  <ul>
-<li><span class="arithmatex">\(G(\theta)\)</span> is the normalized antenna gain</li>
-<li><span class="arithmatex">\(\alpha\)</span> is the sidelobe attenuation factor</li>
-<li><span class="arithmatex">\(e^{-\alpha |\theta|}\)</span> is an exponential attenuation used to suppress sidelobes</li>
-</ul>
-</details>
-
-<p><span class="doc-section-title">Parameters:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Default</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <code>atten_db</code>
-            </td>
-            <td>
-                  <code><span title="float">float</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Exponential attenuation factor used to suppress sidelobes.</p>
-              </div>
-            </td>
-            <td>
-                  <code>10</code>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-<th>Name</th>          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-<td><code>gain_db_vec</code></td>            <td>
                   <code><span title="numpy.ndarray">ndarray</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Gain vector in dB.</p>
+                <p>Saída do filtro casado (envelope real) do PRI atual.</p>
               </div>
             </td>
+            <td>
+                <em>required</em>
+            </td>
           </tr>
-      </tbody>
-    </table>
-        <div class="referencia">
-    <b>References:</b>
-    <p>
-    C. A. Balanis - Antenna Theory: Analysis and Design, 4th Ed., Chapter 10<br>
-    R. C. Hansen - Phased Array Antennas
-    </p>
-</div>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="radar_components.antenna.GainPattern.cosine_gain" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">cosine_gain</span><span class="p">(</span><span class="n">atten_db</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span></code>
-
-</h3>
-
-
-    <div class="doc doc-contents ">
-
-        <p>Function to create a sectoral irradiation pattern, similar to a omnidirectional vertical 2D plane, based on a cosine power model. The radiation pattern is defined as:</p>
-<div class="arithmatex">\[
-\begin{equation}
-G(\theta) = \cos^{n \cdot \alpha}(\theta)
-\end{equation}
-\]</div>
-
-
-<details class="where" open>
-  <summary>Where</summary>
-  <ul>
-<li><span class="arithmatex">\(G(\theta)\)</span> is the normalized antenna gain</li>
-<li><span class="arithmatex">\(n\)</span> is a variable for the angle directivity. </li>
-<li><span class="arithmatex">\(\alpha\)</span> is the sidelobe attenuation factor</li>
-</ul>
-</details>
-
-<p><span class="doc-section-title">Parameters:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Default</th>
-        </tr>
-      </thead>
-      <tbody>
           <tr class="doc-section-item">
             <td>
-                <code>atten_db</code>
+                <code>normalize</code>
             </td>
             <td>
-                  <code><span title="float">float</span></code>
+                  <code><span title="bool">bool</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Exponential attenuation factor used to suppress sidelobes.</p>
+                <p>Se True, normaliza o eixo Y para [0, 1].</p>
               </div>
             </td>
             <td>
-                  <code>9</code>
+                  <code>True</code>
             </td>
           </tr>
       </tbody>
@@ -1521,30 +1388,23 @@ G(\theta) = \cos^{n \cdot \alpha}(\theta)
     <table>
       <thead>
         <tr>
-<th>Name</th>          <th>Type</th>
+          <th>Type</th>
           <th>Description</th>
         </tr>
       </thead>
       <tbody>
           <tr class="doc-section-item">
-<td><code>gain_db_vec</code></td>            <td>
+            <td>
                   <code><span title="numpy.ndarray">ndarray</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Gain vector in dB.</p>
+                <p>np.ndarray — sinal pós-MTI (valor absoluto da diferença).</p>
               </div>
             </td>
           </tr>
       </tbody>
     </table>
-        <div class="referencia">
-    <b>References:</b>
-    <p>
-    C. A. Balanis - Antenna Theory: Analysis and Design, 4th Ed.<br>
-    T. S. Rappaport - Wireless Communications: Principles and Practice
-    </p>
-</div>
 
 
     </div>
@@ -1621,14 +1481,14 @@ G(\theta) = \cos^{n \cdot \alpha}(\theta)
     
     
       
-      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.tabs", "header.autohide", "search.suggest", "search.highlight", "toc.integrate", "content.code.copy", "content.code.highlight", "content.tooltips", "navigation.expand", "navigation.top", "repository.icon"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.tabs", "header.autohide", "search.suggest", "search.highlight", "toc.integrate", "content.code.copy", "content.code.highlight", "content.tooltips", "navigation.expand", "navigation.top", "repository.icon"], "search": "../../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.50899def.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.50899def.min.js"></script>
       
         <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
       
-        <script src="../../site/hide_sidebar.js"></script>
+        <script src="../../../site/hide_sidebar.js"></script>
       
     
   </body>

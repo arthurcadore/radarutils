@@ -1,0 +1,121 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/28.2.5 Chrome/138.0.7204.251 Electron/37.6.1 Safari/537.36" version="28.2.5">
+  <diagram name="Page-1" id="hC81n6pMXinZDwTfVBCR">
+    <mxGraphModel dx="679" dy="1501" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="mmrgZ31232cfRxLB8HJS-1" value="SIMULATION" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="360" y="320" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-2" value="" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="480" y="360" as="sourcePoint" />
+            <mxPoint x="560" y="360" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-3" value="&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;UPSAMPLING&lt;/span&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="560" y="320" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-5" value="X&lt;sub&gt;n,m&lt;/sub&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="480" y="330" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-7" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="mmrgZ31232cfRxLB8HJS-22" target="mmrgZ31232cfRxLB8HJS-3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="619.76" y="260" as="sourcePoint" />
+            <mxPoint x="619.76" y="320" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="590" y="255" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-11" value="" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="680" y="359.52" as="sourcePoint" />
+            <mxPoint x="760" y="359.52" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-12" value="X&lt;sub&gt;t,m&lt;/sub&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="680" y="329.52" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-13" value="&lt;div&gt;DATA&lt;/div&gt;&lt;div&gt;SYNTHESIS&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="760" y="320" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-16" value="s(t)" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="880" y="176" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-17" value="" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="880" y="205.51999999999998" as="sourcePoint" />
+            <mxPoint x="960" y="205.51999999999998" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-18" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="960" y="200" width="10" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-21" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="419.76" y="260" as="sourcePoint" />
+            <mxPoint x="419.76" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-22" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="415" y="250" width="10" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-24" value="Simulation Paramters" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="320" y="240" width="75" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-25" value="&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Entra com os parâmetros de simulação&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;- Gera uma matriz X de n (tempo) linhas e m (dados) colunas.&amp;nbsp;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;- Os dados são respectivamente, distância, angulo relativo ao centro do radar, velocidade relativa ao radar, isso para cada alvo em sequencia.&amp;nbsp;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;- O n (tempo) tem passo de dt, sendo muito maior que o intervalo de um pulso.&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="360" y="410" width="120" height="380" as="geometry" />
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-26" value="&lt;div style=&quot;&quot;&gt;Recebe a matriz de simulação.&amp;nbsp;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;- seleciona um intervalo de t0 a t1 (menor que o de simulação) e fs, e faz superamostragem.&amp;nbsp;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="560" y="410" width="120" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-27" value="&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;PULSE GENERATION&lt;/span&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="760" y="180" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-28" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="mmrgZ31232cfRxLB8HJS-13" target="mmrgZ31232cfRxLB8HJS-27">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="819.76" y="260" as="sourcePoint" />
+            <mxPoint x="760" y="280" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-29" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="mmrgZ31232cfRxLB8HJS-3" target="mmrgZ31232cfRxLB8HJS-27">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="450" y="260" as="sourcePoint" />
+            <mxPoint x="450" y="320" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="650" y="240" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-30" value="&lt;div style=&quot;&quot;&gt;Ultiliza a matriz já superamostrada com os dados de cada target e o vetor de pulsos para gerar a saida s(t).&amp;nbsp;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;a saida s(t) tem os dados já contidos dentro da fase, amplitude e frequência do sinal.&amp;nbsp;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;A sintese aqui é:&amp;nbsp;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- converter distância em intensidade (utilizando ganho, distância, rcs, etc).&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;div&gt;- calcular desvio doppler com a velocidade do alvo.&amp;nbsp;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="760" y="410" width="120" height="380" as="geometry" />
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-31" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="mmrgZ31232cfRxLB8HJS-22" target="mmrgZ31232cfRxLB8HJS-27">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="600" y="310" as="sourcePoint" />
+            <mxPoint x="765" y="375" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="420" y="200" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-32" value="&lt;div style=&quot;&quot;&gt;Com base nas especificações passadas na simulação, gera um vetor de pulsos de radar de t0 a t1 e fs, esses pulsos ja contem dentro de si informação de desvio de fase/freq (doppler), amplitude (rsc / ganho / distância), etc.&amp;nbsp;&amp;nbsp;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;também exporta os pulsos sem alteração para comparação e processamento.&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="760" y="-100" width="120" height="270" as="geometry" />
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-33" value="s&#39;(t)" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="880" y="206" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-34" value="" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="880" y="235.51999999999998" as="sourcePoint" />
+            <mxPoint x="960" y="235.51999999999998" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mmrgZ31232cfRxLB8HJS-35" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="960" y="230" width="10" height="10" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
