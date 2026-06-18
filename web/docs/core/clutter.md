@@ -1,4 +1,4 @@
-::: radarutils.simulator.mti
+::: radarutils.core.clutter
     options:
         extra:
             show_docstring: true

@@ -56,22 +56,9 @@ nav:
       - Changelog: changelog.md
   - Core: 
       - Radar Basics: docs/core/basics.md
-      - Power: docs/core/power.md
-      - Probability: docs/core/probability.md
+      - Clutter: docs/core/clutter.md
   - Simulator:
       - Simulator: docs/simulator/simulator.md
-      - Screen: docs/simulator/screen.md
-      - Pulse Modulation: docs/simulator/pulse_modulation.md
-      - Integrator: docs/simulator/integrator.md
-      - MTI: docs/simulator/mti.md
-      - CFAR: docs/simulator/cfar.md
-      - Detection: docs/simulator/detection.md
-      - Plots: docs/simulator/plots.md
-      - PPI: docs/simulator/ppi.md
-      - Clutter: docs/simulator/clutter.md
-      - Constants: docs/simulator/constants.md
-      - HTML Contents: docs/simulator/html_contents.md
-      - Components: docs/simulator/component.md
       
       
 plugins:

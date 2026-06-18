@@ -22,8 +22,7 @@ def test_rayleigh_distribution():
     bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
     
     # PDF Teórica
-    sigma = A / np.sqrt(2)
-    pdf = (bin_centers / sigma**2) * np.exp(-bin_centers**2 / (2 * sigma**2))
+    pdf = clutter.generate_pdf(bin_centers)
     
     # Erro Quadrático Médio (MSE)
     mse = np.mean((hist - pdf)**2)
@@ -45,9 +44,7 @@ def test_rice_distribution():
     bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
     
     # PDF Teórica
-    sigma = A / np.sqrt(2 * (K + 1))
-    nu = A * np.sqrt(K / (K + 1))
-    pdf = (bin_centers / sigma**2) * np.exp(-(bin_centers**2 + nu**2) / (2 * sigma**2)) * i0(bin_centers * nu / sigma**2)
+    pdf = clutter.generate_pdf(bin_centers)
     
     # Erro Quadrático Médio (MSE)
     mse = np.mean((hist - pdf)**2)
@@ -68,9 +65,7 @@ def test_weibull_distribution():
     bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
     
     # PDF Teórica
-    lam = A
-    c = K
-    pdf = (c / lam) * (bin_centers / lam)**(c - 1) * np.exp(-(bin_centers / lam)**c)
+    pdf = clutter.generate_pdf(bin_centers)
     
     # Erro Quadrático Médio (MSE)
     mse = np.mean((hist - pdf)**2)

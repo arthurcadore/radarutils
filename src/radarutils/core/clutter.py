@@ -1,12 +1,3 @@
-"""
-clutter.py — Geração de clutter para simulação de radar.
-
-References:
-    Merill I. Skolnik — Introduction To Radar Systems, 3rd Ed. (Cap. 7).
-    Hermann Rohling — Radar CFAR Thresholding in Clutter and Multiple Target
-        Situations, IEEE Trans. AES, 1983.
-"""
-
 import abc
 import numpy as np
 
@@ -56,15 +47,27 @@ def clutter_from_str(
 
 
 class Clutter(abc.ABC):
-    """
-    Classe base abstrata para modelos de clutter radar.
+    r"""
+    Base abstract class for radar clutter models.
 
-    Subclasses concretas implementam ``generate()`` para retornar um sinal
-    complexo IQ que representa o clutter ambiental em um PRI.
+    Concrete subclasses implement ``generate()`` to return a complex IQ signal
+    representing the environmental clutter in a Pulse Repetition Interval (PRI).
+
+    $$
+    \begin{equation}
+        c[n] = I[n] + j\,Q[n]
+    \end{equation}
+    $$
+
+    Where:
+        - $c[n]$ is the generated complex clutter sample.
+        - $I[n]$ is the In-phase component.
+        - $Q[n]$ is the Quadrature component.
+        - $n$ is the sample index within the PRI.
 
     Attributes:
         n_samples (int):   Número de amostras por PRI.
-        amplitude (float): Amplitude característica do clutter (controla σ).
+        amplitude (float): Amplitude característica do clutter.        
     """
 
     def __init__(self, n_samples: int, amplitude: float = 1e-6):
@@ -87,18 +90,30 @@ class Clutter(abc.ABC):
 
 class RayleighClutter(Clutter):
     r"""
-    Clutter com estatística de envelope Rayleigh.
+    Generate clutter with Rayleigh envelope statistics.
+    
+    Widely adopted model for returns from multiple simultaneous scatterers (ground, rain, sea).
+    The I and Q components are independent and identically distributed Gaussian processes.
 
-    Modelo amplamente adotado para retornos de múltiplos espalhadores
-    simultâneos (solo, chuva, mar).  As componentes I e Q são processos
-    gaussianos independentes e identicamente distribuídos:
-
-    .. math::
-
+    $$
+    \begin{equation}
         c[n] = \frac{A}{\sqrt{2}} \bigl( \mathcal{N}(0,1) + j\,\mathcal{N}(0,1) \bigr)
+    \end{equation}
+    $$
+    
+    Where:
+        - $c[n]$ is the complex clutter sample.
+        - $A$ is the characteristic amplitude.
+        - $\mathcal{N}(0,1)$ is a standard normal distribution.
+        - The envelope follows a Rayleigh distribution with parameter $\sigma = A / \sqrt{2}$.
 
-    de modo que o envelope segue a distribuição Rayleigh com parâmetro
-    :math:`\sigma = A / \sqrt{2}`.
+    Examples: 
+        ![pageplot](../../assets/plots/rayleigh_clutter.svg)
+
+    <div class="referencia">
+        <b>Reference:</b>
+        <p>Merill I. Skolnik - Introduction To Radar Systems Third Edition (Cap. 7)</p>
+    </div>
     """
 
     def generate(self) -> np.ndarray:
@@ -107,27 +122,50 @@ class RayleighClutter(Clutter):
             np.random.randn(self.n_samples) + 1j * np.random.randn(self.n_samples)
         ) / np.sqrt(2)
 
+    def generate_pdf(self, r: np.ndarray) -> np.ndarray:
+        """Calcula a PDF teórica da distribuição Rayleigh."""
+        sigma = self.amplitude / np.sqrt(2)
+        pdf = (r / sigma**2) * np.exp(-r**2 / (2 * sigma**2))
+        return np.where(r >= 0, pdf, 0.0)
+
 class RiceClutter(Clutter):
     r"""
-    Clutter com estatística de envelope Rice (Rician).
+    Generate clutter with Rician envelope statistics.
+    
+    The Rice model represents an environment with a dominant specular component (deterministic)
+    added to multiple diffuse scatterers (Gaussian). It is suitable for terrain clutter with
+    specular reflection or calm sea with a regular wave component.
+    
+    $$
+    \begin{equation}
+        p(r) = \frac{r}{\sigma^2} \exp\left(-\frac{r^2 + \nu^2}{2\sigma^2}\right) I_0\left(\frac{r \nu}{\sigma^2}\right) h(r)
+    \end{equation}
+    $$
 
-    O modelo Rice representa um ambiente com um componente especular
-    dominante (determinístico) somado a múltiplos espalhadores difusos
-    (gaussianos).  É adequado para clutter de terreno com reflexão
-    especular ou mar calmo com componente de onda regular.
+    It also can be expressed in terms of the Rice factor $K$: 
 
-    O envelope de Rice é parametrizado pelo fator K (Rice factor):
-
-    .. math::
-
+    $$
+    \begin{equation}
         K = \frac{\nu^2}{2\sigma^2}
+    \end{equation}
+    $$
+    
+    Where:
+        - $K$ is the Rice factor (ratio of dominant to diffuse power).
+        - $\nu$ is the amplitude of the dominant component.
+        - $\sigma$ is the standard deviation of the diffuse components.
+        - $p(r)$ is the probability density function of the envelope.
+        - $I_0$ is the modified Bessel function of the first kind with order zero.
+        - $h(r)$ is the Heaviside step function.
+        - For $K \to 0$, it degenerates to a Rayleigh distribution.
+    
+    Examples: 
+        ![pageplot](../../assets/plots/rice_clutter.svg)
 
-    onde :math:`\nu` é a amplitude do componente dominante e :math:`\sigma`
-    é o desvio-padrão dos difusos.  Para K→0 degenera em Rayleigh.
-
-    Attributes:
-        k_factor (float): Fator K de Rice (razão potência dominante / difusa).
-                          Valores típicos: 0 (Rayleigh) a 10 (muito especular).
+    <div class="referencia">
+        <b>Reference:</b>
+        <p>Merill I. Skolnik - Introduction To Radar Systems Third Edition (Cap. 7)</p>
+    </div>
     """
 
     def __init__(self, n_samples: int, amplitude: float = 1e-6, k_factor: float = 1.0):
@@ -155,33 +193,41 @@ class RiceClutter(Clutter):
 
         return (i_component + 1j * q_component)
 
+    def generate_pdf(self, r: np.ndarray) -> np.ndarray:
+        """Calcula a PDF teórica da distribuição Rice (fórmula estendida)."""
+        from scipy.special import i0
+        sigma = self.amplitude / np.sqrt(2.0 * (self.k_factor + 1.0))
+        nu = self.amplitude * np.sqrt(self.k_factor / (self.k_factor + 1.0))
+        
+        pdf = (r / sigma**2) * np.exp(-(r**2 + nu**2) / (2 * sigma**2)) * i0(r * nu / sigma**2)
+        return np.where(r >= 0, pdf, 0.0)
+
 class WeibullClutter(Clutter):
     r"""
-    Clutter com estatística de envelope Weibull.
+    Generate clutter with Weibull envelope statistics.
+    
+    The Weibull distribution is more versatile than Rayleigh and Rice for modeling
+    impulsive ("spiky") clutter, such as heavy sea clutter, intense rain, and low-altitude targets.
 
-    A distribuição Weibull é mais versátil que Rayleigh e Rice para modelar
-    clutter impulsivo ("spiky") como clutter de mar agitado, chuva intensa
-    e alvos de baixa altitude.
+    $$
+    \begin{equation}
+        p(r) = \frac{c}{\lambda} \left(\frac{r}{\lambda}\right)^{c-1} \exp\!\left[-\left(\frac{r}{\lambda}\right)^c\right], \quad r \ge 0
+    \end{equation}
+    $$
+    
+    Where:
+        - $p(r)$ is the probability density function of the envelope.
+        - $c$ is the shape parameter.
+        - $\lambda$ is the scale parameter (amplitude).
+        - For $c = 2$ and $\lambda = \sigma\sqrt{2}$, it degenerates to Rayleigh.
+    
+    Examples: 
+        ![pageplot](../../assets/plots/weibull_clutter.svg)
 
-    A PDF do envelope é:
-
-    .. math::
-
-        p(r) = \frac{c}{\lambda} \left(\frac{r}{\lambda}\right)^{c-1}
-               \exp\!\left[-\left(\frac{r}{\lambda}\right)^c\right],
-               \quad r \ge 0
-
-    onde :math:`c` é o parâmetro de forma e :math:`\lambda` é o parâmetro
-    de escala. Para c=2 e :math:`\lambda = \sigma\sqrt{2}` degenera em
-    Rayleigh.
-
-    O sinal complexo é gerado como:
-        envelope ~ Weibull(c, λ),
-        fase ~ Uniforme(0, 2π).
-
-    Attributes:
-        shape (float): Parâmetro de forma c (> 0).
-                       c < 2 → cauda pesada (spiky); c = 2 → Rayleigh; c > 2 → compacto.
+    <div class="referencia">
+        <b>Reference:</b>
+        <p>Hermann Rohling - Radar CFAR Thresholding in Clutter and Multiple Target Situations, IEEE Trans. AES, 1983.</p>
+    </div>
     """
 
     def __init__(self, n_samples: int, amplitude: float = 1e-6, shape: float = 1.0):
@@ -203,3 +249,12 @@ class WeibullClutter(Clutter):
         phase = np.random.uniform(0.0, 2.0 * np.pi, self.n_samples)
 
         return envelope * np.exp(1j * phase)
+
+    def generate_pdf(self, r: np.ndarray) -> np.ndarray:
+        """Calcula a PDF teórica da distribuição Weibull."""
+        lam = self.amplitude
+        c = self.shape
+        # Add small epsilon to avoid division by zero at r=0 for c < 1
+        r_safe = np.where(r == 0, 1e-10, r)
+        pdf = (c / lam) * (r_safe / lam)**(c - 1) * np.exp(-(r_safe / lam)**c)
+        return np.where(r >= 0, pdf, 0.0)
