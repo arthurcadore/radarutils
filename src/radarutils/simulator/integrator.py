@@ -18,9 +18,6 @@ A implementação matemática reside em:
 
 import numpy as np
 import pyqtgraph as pg
-
-from PySide6 import QtCore
-
 from radarutils.core.integrator import PulseIntegrator
 from radarutils.simulator.constants import N_SAMPLES, N_INT, MIN_Y_INT
 

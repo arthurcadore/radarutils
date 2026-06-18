@@ -4,6 +4,7 @@ import argparse
 import numpy as np
 
 from radarutils.simulator.ppi import PPI
+from radarutils.core.clutter import VALID_CLUTTER_TYPES
 
 class Simulator:
     r"""
@@ -281,9 +282,11 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--clutter',
-        type=str,
-        default='None',
-        help='Tipo de clutter ambiente (ex: "None", "Rayleigh")',
+        type=lambda s: s.lower(),
+        default='none',
+        choices=VALID_CLUTTER_TYPES,
+        metavar='{' + '|'.join(VALID_CLUTTER_TYPES) + '}',
+        help='Tipo de clutter ambiente. Opções: ' + ', '.join(f"'{v}'" for v in VALID_CLUTTER_TYPES),
     )
     parser.add_argument(
         '--output',

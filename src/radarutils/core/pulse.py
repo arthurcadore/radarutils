@@ -1,155 +1,223 @@
+"""
+pulse.py — Geração e modulação de pulsos de radar.
 
+Define as classes base e especializadas para os tipos de pulso utilizados
+na simulação de radar.
 
+Hierarquia de classes::
+
+    Pulse (ABC)
+    ├── AM_RadarPulse   — pulso amplitude-modulado (envelope retangular)
+    └── FM_RadarPulse   — pulso FM (chirp linear)
+
+O método ``modulate()`` retorna o sinal modulado no domínio do tempo.
+"""
+
+import numpy as np
 from abc import ABC, abstractmethod
 
-class pulse(ABC):
-    @abstractmethod
-    def __init__(self, A, t, fs=128000):
-        self.A = A
-        self.t = t
-        self.fs = fs
-    @abstractmethod
-    def modulate(self):
-        pass
 
-class AM_radar_pulse(pulse):
-    def __init__(self, A, t, fs=128000, Prf=10, Pl=0.01):
-        super().__init__(A, t, fs)
-        self.Prf = Prf
-        self.Pl = Pl
-        self.AM_pulse = self.calc_pulse_windows()
+# ══════════════════════════════════════════════════════════════════════════
+#  Classe Base Abstrata
+# ══════════════════════════════════════════════════════════════════════════
 
-    def calc_pulse_windows(self): 
-        """Create a binary vector (1 where the pulse is ON, 0 otherwise)"""
-
-        # timeline
-        N = int(self.t * self.fs)
-        time = np.arange(N) / self.fs
-
-        # PRF pulse repetition period
-        Tprf = 1 / self.Prf
-
-        # pulse mask: 1 during Pl, else 0
-        pulse = ((time % Tprf) < self.Pl).astype(int)
-        
-        return pulse
-
-
-class FM_radar_pulse(pulse): 
-    r"""
-    This class generate simple radar pulses that change the information of frequency during the pulse period. 
+class Pulse(ABC):
     """
-    def __init__(self, A, t, fs=128000, f0=500, f1=5000, Prf=10, Pl=0.01):
+    Classe base abstrata para pulsos de radar.
+
+    Attributes:
+        A (float):  Amplitude do pulso.
+        t (float):  Duração total do sinal (s).
+        fs (float): Taxa de amostragem (Hz).
+    """
+
+    @abstractmethod
+    def __init__(self, A: float, t: float, fs: float = 128_000):
+        self.A  = A
+        self.t  = t
+        self.fs = fs
+
+    @abstractmethod
+    def modulate(self) -> np.ndarray:
+        """Retorna o sinal modulado no domínio do tempo."""
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  AM Pulse
+# ══════════════════════════════════════════════════════════════════════════
+
+class AM_RadarPulse(Pulse):
+    """
+    Pulso radar com modulação de amplitude (envelope retangular).
+
+    O sinal é uma sequência binária: 1 durante a janela de pulso (Pl),
+    0 fora dela. Adequado para representar pulsos simples não-codificados.
+
+    Attributes:
+        Prf (float):    Pulse Repetition Frequency (Hz).
+        Pl (float):     Duração do pulso (s).
+        AM_pulse (ndarray): Máscara binária do pulso.
+    """
+
+    def __init__(
+        self,
+        A:   float,
+        t:   float,
+        fs:  float = 128_000,
+        Prf: float = 10,
+        Pl:  float = 0.01,
+    ):
+        """
+        Args:
+            A:   Amplitude.
+            t:   Duração total do sinal (s).
+            fs:  Taxa de amostragem (Hz).
+            Prf: Pulse Repetition Frequency (Hz).
+            Pl:  Duração do pulso (s).
+        """
         super().__init__(A, t, fs)
-        self.f0 = f0
-        self.f1 = f1
-        self.Prf = Prf
-        self.Pl = Pl
-        self.AM_pulse = self.calc_pulse_windows()
+        self.Prf      = Prf
+        self.Pl       = Pl
+        self.AM_pulse = self._calc_pulse_windows()
 
-    def calc_pulse_windows(self): 
-        """Create a binary vector (1 where the pulse is ON, 0 otherwise)"""
-
-        # timeline
-        N = int(self.t * self.fs)
+    def _calc_pulse_windows(self) -> np.ndarray:
+        """Cria vetor binário (1 onde o pulso está ON, 0 caso contrário)."""
+        N    = int(self.t * self.fs)
         time = np.arange(N) / self.fs
+        Tprf = 1.0 / self.Prf
+        return ((time % Tprf) < self.Pl).astype(int)
 
-        # PRF pulse repetition period
-        Tprf = 1 / self.Prf
+    def modulate(self) -> np.ndarray:
+        """Retorna a máscara AM como sinal modulado (float)."""
+        return self.AM_pulse.astype(float) * self.A
 
-        # pulse mask: 1 during Pl, else 0
-        pulse = ((time % Tprf) < self.Pl).astype(int)
-        
-        return pulse
-    
-    def calc_pulse_FM(self):
+
+# ══════════════════════════════════════════════════════════════════════════
+#  FM Pulse (Chirp Linear)
+# ══════════════════════════════════════════════════════════════════════════
+
+class FM_RadarPulse(Pulse):
+    """
+    Pulso radar com modulação de frequência linear (chirp LFM).
+
+    A frequência varia linearmente de ``f0`` a ``f1`` durante a janela de
+    pulso. Fora da janela, o sinal é zero.  O método ``modulate()`` retorna
+    o sinal AM+FM resultante.
+
+    Attributes:
+        f0 (float):     Frequência inicial do chirp (Hz).
+        f1 (float):     Frequência final do chirp (Hz).
+        Prf (float):    Pulse Repetition Frequency (Hz).
+        Pl (float):     Duração do pulso (s).
+        AM_pulse (ndarray): Máscara binária do pulso.
+    """
+
+    def __init__(
+        self,
+        A:   float,
+        t:   float,
+        fs:  float = 128_000,
+        f0:  float = 500,
+        f1:  float = 5_000,
+        Prf: float = 10,
+        Pl:  float = 0.01,
+    ):
         """
-        Generate a vector of instantaneous frequencies representing
-        a linear FM chirp only during the pulse window.
-        Outside the pulse, frequency = 0.
+        Args:
+            A:   Amplitude.
+            t:   Duração total do sinal (s).
+            fs:  Taxa de amostragem (Hz).
+            f0:  Frequência inicial do chirp (Hz).
+            f1:  Frequência final do chirp (Hz).
+            Prf: Pulse Repetition Frequency (Hz).
+            Pl:  Duração do pulso (s).
         """
+        super().__init__(A, t, fs)
+        self.f0       = f0
+        self.f1       = f1
+        self.Prf      = Prf
+        self.Pl       = Pl
+        self.AM_pulse = self._calc_pulse_windows()
 
-        # timeline
-        N = int(self.t * self.fs)
+    def _calc_pulse_windows(self) -> np.ndarray:
+        """Cria vetor binário (1 onde o pulso está ON, 0 caso contrário)."""
+        N    = int(self.t * self.fs)
         time = np.arange(N) / self.fs
+        Tprf = 1.0 / self.Prf
+        return ((time % Tprf) < self.Pl).astype(int)
 
-        # repetition period
-        Tprf = 1 / self.Prf
+    def _calc_pulse_fm(self) -> np.ndarray:
+        """
+        Gera vetor de frequências instantâneas representando o chirp LFM.
 
-        # vetor de saída
+        Fora da janela de pulso, a frequência é zero.
+
+        Returns:
+            freq (ndarray): Frequência instantânea (Hz) em cada amostra.
+        """
+        N    = int(self.t * self.fs)
+        time = np.arange(N) / self.fs
+        Tprf = 1.0 / self.Prf
         freq = np.zeros(N)
 
-        # percorre cada amostra
         for i in range(N):
-            # instante dentro do período do PRF
             tau = time[i] % Tprf
-
-            # se estamos dentro da duração do pulso
             if tau < self.Pl:
-                # posição normalizada dentro do pulso (0 → 1)
-                alpha = tau / self.Pl
-                # barrido linear f0 → f1
+                alpha   = tau / self.Pl                       # posição normalizada [0, 1]
                 freq[i] = self.f0 + (self.f1 - self.f0) * alpha
-            else:
-                freq[i] = 0.0
-
         return freq
 
-    def modulate(self):
-        freq = self.calc_pulse_FM()
+    def modulate(self) -> np.ndarray:
+        """
+        Retorna o sinal modulado AM + FM (chirp janelado).
 
-        # fase = integral discreta de 2*pi*f/fs
-        phase = np.cumsum(2 * np.pi * freq / self.fs)
-
-        # modulação AM (pulso) + FM (fase)
-        signal = self.A * np.cos(phase) * self.AM_pulse
-
-        return signal
-
+        Returns:
+            signal (ndarray): Sinal no domínio do tempo.
+        """
+        freq   = self._calc_pulse_fm()
+        phase  = np.cumsum(2.0 * np.pi * freq / self.fs)   # integral discreta
+        return self.A * np.cos(phase) * self.AM_pulse
 
 
-import matplotlib.pyplot as plt
-import numpy as np
+# ══════════════════════════════════════════════════════════════════════════
+#  Demonstração (execução direta)
+# ══════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    pulse = FM_radar_pulse(
+    import matplotlib.pyplot as plt
+
+    pulse = FM_RadarPulse(
         A=1,
-        t=0.5,         # duração total
-        fs=128000,      # taxa de amostragem
+        t=0.5,
+        fs=128_000,
         Prf=3,
-        Pl=0.05
+        Pl=0.05,
     )
 
-    AM = pulse.AM_pulse
-    freq = pulse.calc_pulse_FM()
-    signal = pulse.modulate()   
-    N = len(AM)
-    ts = np.arange(N) / pulse.fs
+    AM     = pulse.AM_pulse
+    freq   = pulse._calc_pulse_fm()
+    signal = pulse.modulate()
+    N      = len(AM)
+    ts     = np.arange(N) / pulse.fs
 
-    plt.figure(figsize=(10, 3))
-    plt.plot(ts, AM, linewidth=1)
-    plt.title("Máscara de Pulso (AM_pulse)")
-    plt.xlabel("Tempo (s)")
-    plt.ylabel("Valor (0 ou 1)")
-    plt.grid(True)
-    plt.tight_layout()
+    fig, axes = plt.subplots(3, 1, figsize=(10, 9), tight_layout=True)
+
+    axes[0].plot(ts, AM, linewidth=1)
+    axes[0].set_title("Máscara de Pulso (AM_pulse)")
+    axes[0].set_xlabel("Tempo (s)")
+    axes[0].set_ylabel("Valor (0 ou 1)")
+    axes[0].grid(True)
+
+    axes[1].plot(ts, freq)
+    axes[1].set_title("Frequência Instantânea do Pulso FM")
+    axes[1].set_xlabel("Tempo (s)")
+    axes[1].set_ylabel("Frequência (Hz)")
+    axes[1].grid(True)
+
+    axes[2].plot(ts, signal)
+    axes[2].set_title("Sinal Modulado FM")
+    axes[2].set_xlabel("Tempo (s)")
+    axes[2].set_ylabel("Amplitude")
+    axes[2].grid(True)
+
     plt.show()
-
-    plt.figure(figsize=(10,4))
-    plt.plot(ts, freq)
-    plt.title("Frequência Instantânea do Pulso FM")
-    plt.xlabel("Tempo (s)")
-    plt.ylabel("Frequência (Hz)")
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
-
-    plt.figure(figsize=(10,4))
-    plt.plot(ts, signal)
-    plt.title("Sinal Modulado FM")
-    plt.xlabel("Tempo (s)")
-    plt.ylabel("Amplitude")
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
-

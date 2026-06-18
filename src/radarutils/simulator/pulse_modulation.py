@@ -27,7 +27,7 @@ from radarutils.simulator.constants import (
     C, F_C, B, N_SAMPLES, DEFAULT_SNR_DB,
 )
 from radarutils.simulator.html_contents import get_pulse_header_html
-from radarutils.core.clutter import generate_rayleigh_clutter
+from radarutils.core.clutter import Clutter, clutter_from_str
 from radarutils.core.waveform import (
     generate_lfm_chirp,
     build_rx_echo,
@@ -68,7 +68,7 @@ class PulseWidget(QtWidgets.QSplitter):
             ppi (PPI): Instância de PPI com radar e targets configurados.
             snr_db (float): SNR da adição de AWGN em dB. Padrão: DEFAULT_SNR_DB.
             coherent_integration (bool): Se True, passa sinal IQ complexo normalizado no retorno.
-            clutter_type (str): Tipo de clutter a injetar ('None' ou 'Rayleigh').
+            clutter_type (str): Tipo de clutter a injetar ('None', 'Rayleigh', 'Rice' ou 'Weibull').
             normalize_plots (bool): Se True, normaliza eixo Y do MF para [0, 1].
         """
         super().__init__(QtCore.Qt.Vertical)
@@ -76,8 +76,12 @@ class PulseWidget(QtWidgets.QSplitter):
         self.ppi                  = ppi
         self.snr_db               = snr_db if snr_db is not None else DEFAULT_SNR_DB
         self.coherent_integration = coherent_integration
-        self.clutter_type         = clutter_type if clutter_type else "None"
         self.normalize_plots      = normalize_plots
+
+        # Instancia o modelo de clutter (ou None se desativado)
+        self._clutter: Clutter | None = None
+        self._clutter_name: str = "None"
+        self._set_clutter(clutter_type)
 
         self.setStyleSheet("QSplitter::handle { background-color: #555555; height: 3px; }")
 
@@ -118,6 +122,33 @@ class PulseWidget(QtWidgets.QSplitter):
     # ──────────────────────────────────────────────────────────────────────
     #  Construção dos sub-widgets
     # ──────────────────────────────────────────────────────────────────────
+
+    def _set_clutter(self, clutter_type: str) -> None:
+        """
+        Instancia o modelo de clutter a partir do nome e armazena o nome
+        formatado para exibição no cabeçalho.
+
+        Args:
+            clutter_type: Nome do modelo ('None', 'Rayleigh', 'Rice', 'Weibull').
+        """
+        try:
+            self._clutter = clutter_from_str(clutter_type, N_SAMPLES, amplitude=1e-6)
+        except ValueError:
+            self._clutter = None
+
+        if self._clutter is None:
+            self._clutter_name = "None"
+        else:
+            self._clutter_name = type(self._clutter).__name__.replace("Clutter", "")
+
+    def set_clutter(self, clutter_type: str) -> None:
+        """
+        Altera o modelo de clutter em tempo de execução.
+
+        Args:
+            clutter_type: Nome do modelo ('None', 'Rayleigh', 'Rice', 'Weibull').
+        """
+        self._set_clutter(clutter_type)
 
     def _build_header(self) -> None:
         r"""Cria o QLabel de cabeçalho com parâmetros da simulação."""
@@ -272,9 +303,9 @@ class PulseWidget(QtWidgets.QSplitter):
                 rx         += echo_real
                 rx_complex += echo_cplx
 
-        # ── 2. Clutter Rayleigh (ambiental) ──────────────────────────────
-        if self.clutter_type.lower() == 'rayleigh':
-            c_noise = generate_rayleigh_clutter(N_SAMPLES, amplitude=1e-6)
+        # ── 2. Clutter ambiental (Rayleigh / Rice / Weibull) ─────────────
+        if self._clutter is not None:
+            c_noise     = self._clutter.generate()
             rx_complex += c_noise
             rx         += np.real(c_noise)
 
@@ -328,11 +359,7 @@ class PulseWidget(QtWidgets.QSplitter):
         c_time  = self.ppi.elapsed_time         if self.ppi           else 0.0
         t_total = self.ppi.t                    if self.ppi           else 0.0
         r_max   = self.ppi.r_max                if self.ppi           else 0.0
-        c_str   = (
-            self.clutter_type.capitalize()
-            if self.clutter_type and self.clutter_type.lower() != 'none'
-            else "None"
-        )
+        c_str        = self._clutter_name
         int_mode_str = "Coherent" if self.coherent_integration else "Non-Coherent"
 
         html = get_pulse_header_html(
