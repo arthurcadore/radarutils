@@ -49,7 +49,7 @@ clean-packages:
 
 test:
 	@echo "Executando todos os testes..."
-	.venv/bin/pytest -v
+	.venv/bin/pytest -v -s	
 	@echo "Testes concluídos!"
 
 # ==========================================================

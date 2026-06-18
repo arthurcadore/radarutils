@@ -26,6 +26,7 @@ def test_rayleigh_distribution():
     
     # Erro Quadrático Médio (MSE)
     mse = np.mean((hist - pdf)**2)
+    print(f"\nErro da distribuição Rayleigh: {mse}")
     
     # Margem de erro bem conservadora
     assert mse < 1e-3, f"Erro da distribuição Rayleigh está muito alto: MSE={mse}"
@@ -48,6 +49,7 @@ def test_rice_distribution():
     
     # Erro Quadrático Médio (MSE)
     mse = np.mean((hist - pdf)**2)
+    print(f"\nErro da distribuição Rice: {mse}")
     
     assert mse < 1e-3, f"Erro da distribuição Rice está muito alto: MSE={mse}"
 
@@ -69,6 +71,7 @@ def test_weibull_distribution():
     
     # Erro Quadrático Médio (MSE)
     mse = np.mean((hist - pdf)**2)
+    print(f"\nErro da distribuição Weibull: {mse}")
     
     assert mse < 1e-3, f"Erro da distribuição Weibull está muito alto: MSE={mse}"
 

@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 from radarutils.core.clutter import RayleighClutter, RiceClutter, WeibullClutter
-from radarutils.visualization.plotter import save_figure
+from radarutils.visualization.plotter import save_figure, create_figure, PDFplot
 
 def plot_rayleigh(output_dir: Path):
     N = 100000
@@ -27,18 +27,23 @@ def plot_rayleigh(output_dir: Path):
     # Theoretical PDF
     r = np.linspace(0, np.max(envelope), 500)
     pdf = clutter.generate_pdf(r)
+    fig, grid = create_figure(1, 1, figsize=(12, 5))
     
-    plt.figure(figsize=(12, 5))
-    plt.hist(envelope, bins=200, density=True, alpha=0.6, color='blue', label='Histograma')
-    plt.plot(r, pdf, 'r-', lw=2, label=f'PDF Teórica (A={A})')
-    plt.xlabel('Amplitude')
-    plt.ylabel('Densidade de Probabilidade')
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    plt.tight_layout()
+    PDFplot(
+        fig=fig,
+        grid=grid,
+        pos=(0, 0),
+        pdf_x=r,
+        pdf_y=pdf,
+        hist=True,
+        samples=envelope,
+        bins=200,
+        orientation="vertical",
+        legend=f'PDF Teórica (A={A})',
+        colors=["blue"]
+    )
     
-    save_figure(plt.gcf(), "rayleigh_clutter.pdf")
-    plt.close()
+    save_figure(fig, "rayleigh_clutter.pdf")
 
 def plot_rice(output_dir: Path):
     N = 100000
@@ -53,18 +58,23 @@ def plot_rice(output_dir: Path):
     # Theoretical PDF
     r = np.linspace(0, np.max(envelope), 500)
     pdf = clutter.generate_pdf(r)
+    fig, grid = create_figure(1, 1, figsize=(12, 5))
     
-    plt.figure(figsize=(12, 5))
-    plt.hist(envelope, bins=200, density=True, alpha=0.6, color='green', label='Histograma')
-    plt.plot(r, pdf, 'r-', lw=2, label=f'PDF Teórica (A={A}, K={K})')
-    plt.xlabel('Amplitude')
-    plt.ylabel('Densidade de Probabilidade')
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    plt.tight_layout()
+    PDFplot(
+        fig=fig,
+        grid=grid,
+        pos=(0, 0),
+        pdf_x=r,
+        pdf_y=pdf,
+        hist=True,
+        samples=envelope,
+        bins=200,
+        orientation="vertical",
+        legend=f'PDF Teórica (A={A}, K={K})',
+        colors=["green"]
+    )
     
-    save_figure(plt.gcf(), "rice_clutter.pdf")
-    plt.close()
+    save_figure(fig, "rice_clutter.pdf")
 
 def plot_weibull(output_dir: Path):
     N = 100000
@@ -79,18 +89,23 @@ def plot_weibull(output_dir: Path):
     # Theoretical PDF
     r = np.linspace(0.001, np.max(envelope), 500)
     pdf = clutter.generate_pdf(r)
+    fig, grid = create_figure(1, 1, figsize=(12, 5))
     
-    plt.figure(figsize=(12, 5))
-    plt.hist(envelope, bins=200, density=True, alpha=0.6, color='purple', label='Histograma')
-    plt.plot(r, pdf, 'r-', lw=2, label=f'PDF Teórica (A={A}, c={c})')
-    plt.xlabel('Amplitude')
-    plt.ylabel('Densidade de Probabilidade')
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    plt.tight_layout()
+    PDFplot(
+        fig=fig,
+        grid=grid,
+        pos=(0, 0),
+        pdf_x=r,
+        pdf_y=pdf,
+        hist=True,
+        samples=envelope,
+        bins=200,
+        orientation="vertical",
+        legend=f'PDF Teórica (A={A}, c={c})',
+        colors=["purple"]
+    )
     
-    save_figure(plt.gcf(), "weibull_clutter.pdf")
-    plt.close()
+    save_figure(fig, "weibull_clutter.pdf")
 
 def main():
     plot_rayleigh(None)

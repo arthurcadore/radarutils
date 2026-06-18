@@ -527,29 +527,6 @@ class TxRxSignalPlot(BasePlot):
         # Estilo geral herdado de BasePlot
         self.apply_ax_style()
 
-if __name__ == "__main__":
-    from ..core.data import ImportData
-    
-    tx = ImportData("tx_data_radar_0").load()
-    rx = ImportData("rx_data_radar_0").load()
-
-    t_tx, a_tx = tx
-    t_rx, a_rx = rx
-
-    fig, grid = create_figure(1, 1)
-
-    TxRxSignalPlot(
-        fig=fig,
-        grid=grid,
-        position=(0, 0),
-        t_tx=t_tx,
-        a_tx=a_tx,
-        t_rx=t_rx,
-        a_rx=a_rx
-    )
-
-    plt.show()
-    
 #TODO: add phase plot into response. 
 class FrequencyResponsePlot(BasePlot):
     r"""
@@ -668,7 +645,7 @@ class PDFplot(BasePlot):
                  pos,
                  pdf_x: np.ndarray,
                  pdf_y: np.ndarray,
-                 variance: float,
+                 variance: Optional[float] = None,
                  num_points: int = 5000,
                  legend: str = "$p(x)$",
                  xlabel: str = "Amplitude ($x$)",
@@ -678,6 +655,7 @@ class PDFplot(BasePlot):
                  hist: bool = False,
                  samples: Optional[np.ndarray] = None,
                  bins: int = 100,
+                 orientation: str = "horizontal",
                  **kwargs) -> None:
         ax = fig.add_subplot(grid[pos])
         super().__init__(ax, **kwargs)
@@ -693,16 +671,17 @@ class PDFplot(BasePlot):
         self.hist = hist
         self.samples = samples
         self.bins = bins
+        self.orientation = orientation
 
         self.plot()
 
     def plot(self) -> None:
         # Plot histogram if enabled and samples are provided
         if self.hist and self.samples is not None:
-            hist_kwargs = {"alpha": 0.5, "density": True, "bins": self.bins, "orientation": "horizontal"}
+            hist_kwargs = {"alpha": 0.5, "density": True, "bins": self.bins, "orientation": self.orientation}
             hist_kwargs.update(self.style.get("hist", {}))
             color_hist = "gray"
-            self.ax.hist(self.samples, color=color_hist, label="Samples", **hist_kwargs)
+            self.ax.hist(self.samples, color=color_hist, label="Histograma", **hist_kwargs)
 
         # Plot
         line_kwargs = {"linewidth": 2, "alpha": 1.0}
@@ -710,14 +689,24 @@ class PDFplot(BasePlot):
         color = self.apply_color(0) or "darkgreen"
 
         # plot the pdf
-        label_pdf = r"$p(x)$" + "\n\n" + r"$\sigma^2 = " + f"{self.variance:.4f}" + "$"
-        self.ax.plot(self.pdf_y, self.pdf_x, label=label_pdf, color=color, **line_kwargs)
-        
-        # Adjust axis
-        self.ax.set_xlabel(self.ylabel)  
-        self.ax.set_ylabel(self.xlabel) 
-        if self.ylim is not None:
-            self.ax.set_ylim(self.ylim)
+        if self.variance is not None:
+            label_pdf = self.legend + "\n\n" + r"$\sigma^2 = " + f"{self.variance:.4f}" + "$"
         else:
-            self.ax.set_ylim([-1, 1])
+            label_pdf = self.legend
+
+        if self.orientation == "horizontal":
+            self.ax.plot(self.pdf_y, self.pdf_x, label=label_pdf, color=color, **line_kwargs)
+            self.ax.set_xlabel(self.ylabel)  
+            self.ax.set_ylabel(self.xlabel) 
+            if self.ylim is not None:
+                self.ax.set_ylim(self.ylim)
+            else:
+                self.ax.set_ylim([-1, 1])
+        else:
+            self.ax.plot(self.pdf_x, self.pdf_y, label=label_pdf, color=color, **line_kwargs)
+            self.ax.set_xlabel(self.xlabel)  
+            self.ax.set_ylabel(self.ylabel) 
+            if self.ylim is not None:
+                self.ax.set_ylim(self.ylim)
+            
         self.apply_ax_style()
