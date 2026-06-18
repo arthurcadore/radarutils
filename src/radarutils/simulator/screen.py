@@ -68,22 +68,9 @@ def prepare_output_file(file_name: str = "simulation.mp4") -> str:
     return str(output_path)
 
 
-# ──────────────────────────────────────────────────────────────────────────
-#  ProcessingWidget — Pipeline de processamento (coluna 3)
-# ──────────────────────────────────────────────────────────────────────────
-
 class ProcessingWidget(QtWidgets.QSplitter):
     r"""
     Pipeline de processamento de sinal radar — coluna direita da UI.
-
-    Layout (QSplitter vertical):
-    ┌──────────────────────────────────────────────────────────┐
-    │  MTI Plot        (amarelo) — cancela ecos fixos           │
-    │  Integrator Plot (cinza)   — acumula SNR em N_INT PRIs   │
-    │  CA-CFAR Plot    (ciano)   — threshold adaptativo        │
-    ├──────────────────────────────────────────────────────────┤
-    │  PPI Estimado    (azul)    — rastro de detecções CFAR    │
-    └──────────────────────────────────────────────────────────┘
 
     O método ``update(pulse_data)`` encadeia os quatro estágios e
     atualiza o PPI Estimado com as detecções do CFAR.

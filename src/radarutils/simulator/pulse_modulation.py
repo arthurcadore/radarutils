@@ -10,11 +10,14 @@ Contém a classe ``PulseWidget``, um QSplitter vertical com:
 O método público ``update_pulse(detections)`` reconstrói o sinal RX a
 partir das detecções do PPI, aplica ruído AWGN e calcula o filtro casado.
 Retorna um dict com os sinais processados para uso no ``ProcessingWidget``.
+
+As operações matemáticas (geração de chirp LFM, eco de alvo com Doppler,
+AWGN calibrado por SNR e filtro casado) residem em:
+    radarutils.core.waveform
 """
 
 import numpy as np
 import pyqtgraph as pg
-import scipy.signal
 
 from PySide6 import QtCore, QtWidgets
 
@@ -23,19 +26,27 @@ from radarutils.simulator.detection import DetectionRecord
 from radarutils.simulator.constants import (
     C, F_C, B, N_SAMPLES, DEFAULT_SNR_DB,
 )
-from radarutils.simulator.clutter import generate_rayleigh_clutter
 from radarutils.simulator.html_contents import get_pulse_header_html
+from radarutils.core.clutter import generate_rayleigh_clutter
+from radarutils.core.waveform import (
+    generate_lfm_chirp,
+    build_rx_echo,
+    apply_awgn,
+    matched_filter,
+    doppler_frequency,
+)
 
 
 class PulseWidget(QtWidgets.QSplitter):
     r"""
     Painel de visualização do pulso radar em banda base (chirp LFM).
 
-    Parâmetros de forma de onda derivados automaticamente de ``r_max``:
-      T_PRI = 2·r_max / c    (período de repetição de pulso)
-      T_P   = T_PRI / 7      (duração do pulso transmitido)
-      fs    = N_SAMPLES/T_PRI (taxa de amostragem)
-      k     = B / T_P         (taxa de varredura do chirp)
+    Parâmetros de forma de onda derivados automaticamente de ``r_max``::
+
+        T_PRI = 2·r_max / c    (período de repetição de pulso)
+        T_P   = T_PRI / 7      (duração do pulso transmitido)
+        fs    = N_SAMPLES/T_PRI (taxa de amostragem)
+        k     = B / T_P         (taxa de varredura do chirp)
 
     Uso::
 
@@ -87,10 +98,8 @@ class PulseWidget(QtWidgets.QSplitter):
         else:
             self.P_tx_dbm = 60.0
 
-        # Sinal TX: chirp LFM real — cos(π·k·t²) durante n_p amostras, zeros no resto
-        self._tx            = np.zeros(N_SAMPLES)
-        t_chirp             = self.t[:self.n_p]
-        self._tx[:self.n_p] = np.cos(np.pi * self.k * t_chirp ** 2)
+        # Sinal TX: chirp LFM gerado por core.waveform
+        self._tx = generate_lfm_chirp(N_SAMPLES, self.n_p, self.k, self.t)
 
         # Marcador de início do período de escuta (µs) para linhas verticais nos plots
         rx_start_us = self.T_P * 1e6
@@ -139,12 +148,10 @@ class PulseWidget(QtWidgets.QSplitter):
         self._tx_curve = self._tx_plot.plot(
             self.t_us, self._tx, pen=pg.mkPen((0, 200, 255), width=1),
         )
-        # Linha horizontal zero-reference
         self._tx_plot.addItem(pg.InfiniteLine(
             pos=0, angle=0,
             pen=pg.mkPen((0, 80, 100), width=1, style=QtCore.Qt.DotLine),
         ))
-        # Linha vertical: início do período de escuta
         self._tx_plot.addItem(pg.InfiniteLine(
             pos=rx_start_us, angle=90,
             pen=pg.mkPen((180, 80, 0), width=1, style=QtCore.Qt.DashLine),
@@ -200,12 +207,12 @@ class PulseWidget(QtWidgets.QSplitter):
 
         Pipeline:
           1. Para cada detecção: calcula atraso τ = 2R/c, amplitude relativa
-             e frequência Doppler f_d = 2·v_r·F_C/c.
+             e frequência Doppler f_d = 2·v_r·F_C/c (via ``core.waveform``).
           2. Soma contribuições de eco ao sinal real rx[] e complexo rx_complex[].
           3. Injeta clutter Rayleigh (opcional).
           4. Normaliza sinal (ganho fixo independente de SNR).
-          5. Adiciona AWGN gaussiano calibrado pelo snr_db.
-          6. Calcula correlação cruzada (matched filter) real e complexa.
+          5. Adiciona AWGN gaussiano calibrado pelo snr_db (via ``core.waveform``).
+          6. Calcula correlação cruzada (matched filter) real e complexa (via ``core.waveform``).
           7. Atualiza plots e cabeçalho HTML.
 
         Args:
@@ -247,21 +254,23 @@ class PulseWidget(QtWidgets.QSplitter):
                 else:
                     v_r = 0.0
 
-                # Desvio Doppler (Hz): f_d = 2·v_r·F_C / c
-                f_d = 2.0 * v_r * F_C / C
+                # Desvio Doppler (Hz) via core.waveform
+                f_d = doppler_frequency(v_r, F_C, C)
 
-                # Limites da janela de eco dentro do PRI
-                end      = min(n_del + self.n_p, N_SAMPLES)
-                n_actual = end - n_del
-                if n_actual <= 0:
-                    continue
-
-                # Fase instantânea: chirp LFM + Doppler + fase portadora
-                t_local     = self.t[n_del:end] - tau
-                chirp_phase = np.pi * self.k * t_local**2 + 2.0 * np.pi * f_d * t_local + phi
-
-                rx[n_del:end]         += a * np.cos(chirp_phase)
-                rx_complex[n_del:end] += a * np.exp(1j * chirp_phase)
+                # Eco do alvo (chirp LFM atrasado + Doppler) via core.waveform
+                echo_real, echo_cplx = build_rx_echo(
+                    t=self.t,
+                    n_samples=N_SAMPLES,
+                    n_pulse=self.n_p,
+                    chirp_rate=self.k,
+                    amplitude=a,
+                    delay_samples=n_del,
+                    carrier_phase=phi,
+                    doppler_hz=f_d,
+                    tau=tau,
+                )
+                rx         += echo_real
+                rx_complex += echo_cplx
 
         # ── 2. Clutter Rayleigh (ambiental) ──────────────────────────────
         if self.clutter_type.lower() == 'rayleigh':
@@ -278,33 +287,18 @@ class PulseWidget(QtWidgets.QSplitter):
         peak = float(np.max(np.abs(rx)))
         rx_norm = (rx / peak * 0.88) if peak > 1e-30 else rx.copy()
 
-        # Mesma escala de normalização para o sinal complexo (mantém proporção IQ)
-        peak_cplx      = float(np.max(np.abs(rx_complex)))
+        peak_cplx       = float(np.max(np.abs(rx_complex)))
         rx_complex_norm = (rx_complex / peak_cplx * 0.88) if peak_cplx > 1e-30 else rx_complex.copy()
 
-        # ── 5. AWGN ──────────────────────────────────────────────────────
-        # σ tal que SNR = 20·log10(A_pico / σ) = snr_db
-        ref      = float(np.max(np.abs(rx_norm))) if peak > 1e-30 else 0.88
-        sigma    = ref / (10.0 ** (self.snr_db / 20.0))
-        rx_noisy = rx_norm + sigma * np.random.randn(N_SAMPLES)
+        # ── 5. AWGN (via core.waveform) ──────────────────────────────────
+        rx_noisy = apply_awgn(rx_norm, self.snr_db)
 
         # Plot do sinal RX com ruído
         self._rx_curve.setData(self.t_us, rx_noisy)
 
-        # ── 6. Filtro Casado (Pulse Compression) ─────────────────────────
+        # ── 6. Filtro Casado (via core.waveform) ─────────────────────────
         tx_pulse = self._tx[:self.n_p]
-
-        # Saída real: |correlação(rx_noisy, tx_pulse)| — usado para MTI e display
-        compressed  = np.abs(scipy.signal.correlate(rx_noisy, tx_pulse, mode='same'))
-        comp_disp   = np.roll(compressed, self.n_p // 2)
-        comp_disp[:self.n_p // 2] = 0.0   # zera zona cega (antes de r_min)
-
-        # Saída complexa: correlação(rx_IQ, tx_pulse∗) — usada para integração coerente
-        compressed_cplx = scipy.signal.correlate(
-            rx_complex_norm, tx_pulse.astype(complex), mode='same'
-        )
-        comp_complex    = np.roll(compressed_cplx, self.n_p // 2)
-        comp_complex[:self.n_p // 2] = 0.0
+        comp_disp, comp_complex = matched_filter(rx_noisy, rx_complex_norm, tx_pulse, self.n_p)
 
         # ── 7. Plot do MF ──────────────────────────────────────────────
         peak_comp = float(np.max(comp_disp))

@@ -1,45 +1,8 @@
-import numpy as np
-from collections import deque
-
-class PulseIntegrator:
-    """
-    Realiza a integração de pulsos, coerente ou não-coerente, com base
-    num histórico (buffer) dos últimos N_INT PRIs (Pulse Repetition Intervals).
-    """
-    def __init__(self, n_int: int, coherent: bool):
-        self.n_int = n_int
-        self.coherent = coherent
-        self._buffer = deque(maxlen=n_int)
-
-    def process(self, mti_real: np.ndarray, comp_complex: np.ndarray = None) -> np.ndarray:
-        """
-        Processa os sinais e atualiza o estado de integração.
-        
-        Args:
-            mti_real: Sinal real após processamento MTI (para integração não-coerente).
-            comp_complex: Sinal complexo mantendo a fase (para integração coerente).
-
-        Returns:
-            Sinal integrado e amplificado.
-        """
-        if self.coherent:
-            # Integração Coerente: soma amplitudes complexas → |soma| melhora SNR de N_INT × em amplitude
-            if comp_complex is None:
-                raise ValueError("comp_complex must be provided for coherent integration.")
-            self._buffer.append(comp_complex)
-            coh_sum = np.sum(list(self._buffer), axis=0)   # soma complexa
-            return np.abs(coh_sum) ** 2                    # envelope de potência
-        else:
-            # Integração Não-Coerente: soma de |mti|² dos últimos N_INT PRIs
-            self._buffer.append(mti_real ** 2)
-            return np.sum(list(self._buffer), axis=0)
-
-
-
 """
-integrator_widget.py — Widget de visualização do Integrador de Pulsos.
+integrator.py — Widget de visualização do Integrador de Pulsos.
 
-Encapsula o ``PulseIntegrator`` de ``integrator.py`` num widget PyQtGraph.
+Encapsula o ``PulseIntegrator`` de ``radarutils.core.integrator`` num widget
+PyQtGraph pronto para uso no painel de processamento.
 
 Dois modos de integração:
   - **Não-Coerente**: soma as potências (|mti|²) dos últimos N_INT PRIs.
@@ -48,6 +11,9 @@ Dois modos de integração:
     e extrai o envelope de potência |soma|².
     Ganho de SNR ≈ N_INT (20·log₁₀(N_INT) dB), porém requer coerência
     de fase entre PRIs.
+
+A implementação matemática reside em:
+    radarutils.core.integrator.PulseIntegrator
 """
 
 import numpy as np
@@ -55,6 +21,7 @@ import pyqtgraph as pg
 
 from PySide6 import QtCore
 
+from radarutils.core.integrator import PulseIntegrator
 from radarutils.simulator.constants import N_SAMPLES, N_INT, MIN_Y_INT
 
 
@@ -63,7 +30,7 @@ class IntegratorWidget(pg.PlotWidget):
     Widget de plot para a saída do Integrador de Pulsos.
 
     Herda de ``pg.PlotWidget`` e delega o cálculo ao ``PulseIntegrator``
-    de ``integrator.py``.
+    de ``radarutils.core.processing``.
 
     O modo (coerente vs. não-coerente) é fixado na construção.
     Uma legenda no canto superior esquerdo indica o modo ativo.
@@ -90,9 +57,9 @@ class IntegratorWidget(pg.PlotWidget):
         """
         super().__init__()
 
-        self._t_us      = t_us
+        self._t_us       = t_us
         self._integrator = PulseIntegrator(n_int=n_int, coherent=coherent)
-        self._coherent  = coherent
+        self._coherent   = coherent
 
         # Configuração visual
         self.setBackground('k')
@@ -146,8 +113,10 @@ class IntegratorWidget(pg.PlotWidget):
         Returns:
             np.ndarray — sinal integrado (potência acumulada).
         """
-        integrated = self._integrator.process(mti_out, comp_complex if self._coherent else None)
-        peak_int   = float(np.max(integrated)) if integrated.any() else 0.0
+        integrated = self._integrator.process(
+            mti_out, comp_complex if self._coherent else None
+        )
+        peak_int = float(np.max(integrated)) if integrated.any() else 0.0
 
         if normalize:
             disp = (integrated / peak_int) if peak_int > 1e-30 else integrated

@@ -1,37 +1,8 @@
-import numpy as np
-from scipy.ndimage import uniform_filter1d
-
-def ca_cfar(signal: np.ndarray, n_guard: int, n_train: int, alpha: float) -> np.ndarray:
-    """
-    CA-CFAR vectorizado via uniform_filter1d — threshold adaptativo por célula.
-    
-    Args:
-        signal: Sinal de entrada (já pós-integração e MTI).
-        n_guard: Número de células de guarda de cada lado.
-        n_train: Número de células de treinamento de cada lado.
-        alpha: Fator multiplicativo do threshold.
-        
-    Returns:
-        Um array com os valores de threshold estimativos para cada amostra do sinal.
-    """
-    win_t = 2 * (n_guard + n_train) + 1
-    win_g = 2 * n_guard + 1
-
-    # Média móvel sobre a janela total e sobre a janela de guarda
-    # Usa mode='reflect' (ou 'nearest') em vez de 'constant' (zero) para não
-    # subestimar o piso de ruído nas bordas (o que causa falsos alarmes no início e fim do gráfico)
-    sum_t = uniform_filter1d(signal, size=win_t, mode='reflect') * win_t
-    sum_g = uniform_filter1d(signal, size=win_g, mode='reflect') * win_g
-    n_tr  = max(win_t - win_g, 1)
-
-    return np.maximum(alpha * (sum_t - sum_g) / n_tr, 0.0)
-
-
 """
-cfar_widget.py — Widget de visualização do detector CA-CFAR.
+cfar.py — Widget de visualização do detector CA-CFAR.
 
-Encapsula a função ``ca_cfar()`` de ``cfar.py`` num widget PyQtGraph
-com três elementos visuais sobrepostos:
+Encapsula a função ``ca_cfar()`` de ``radarutils.core.cfar`` num widget
+PyQtGraph com três elementos visuais sobrepostos:
   - Curva ciano   : sinal integrado (entrada do CFAR).
   - Curva vermelha: threshold adaptativo calculado pelo CA-CFAR.
   - Pontos amarelos: células que ultrapassaram o threshold (detecções).
@@ -40,6 +11,9 @@ O CA-CFAR (Cell-Averaging Constant False Alarm Rate) estima o piso de
 ruído local usando células de treinamento vizinhas e define um threshold
 multiplicativo α acima desse piso, garantindo taxa de falso alarme (FA)
 aproximadamente constante independentemente do nível de ruído.
+
+A implementação matemática reside em:
+    radarutils.core.cfar.ca_cfar
 """
 
 import numpy as np
@@ -48,6 +22,7 @@ import scipy.signal
 
 from PySide6 import QtCore
 
+from radarutils.core.cfar import ca_cfar
 from radarutils.simulator.constants import (
     N_SAMPLES, N_GUARD, N_TRAIN, K_CFAR, MIN_CFAR_ABS, MIN_Y_CFAR,
 )
@@ -57,7 +32,8 @@ class CfarWidget(pg.PlotWidget):
     """
     Widget de plot para o detector CA-CFAR.
 
-    Herda de ``pg.PlotWidget`` e chama ``ca_cfar()`` de ``cfar.py``.
+    Herda de ``pg.PlotWidget`` e chama ``ca_cfar()`` de
+    ``radarutils.core.processing``.
 
     Além de calcular e plotar o threshold adaptativo, detecta os picos
     que superam o threshold e os exibe como scatter (pontos amarelos).
@@ -92,11 +68,11 @@ class CfarWidget(pg.PlotWidget):
         """
         super().__init__()
 
-        self._t_us        = t_us
-        self._fs          = fs
-        self._n_guard     = n_guard
-        self._n_train     = n_train
-        self._alpha       = alpha
+        self._t_us         = t_us
+        self._fs           = fs
+        self._n_guard      = n_guard
+        self._n_train      = n_train
+        self._alpha        = alpha
         self._min_cfar_abs = min_cfar_abs
 
         # Configuração visual
@@ -160,8 +136,8 @@ class CfarWidget(pg.PlotWidget):
         cfar_thresh      = ca_cfar(integrated, self._n_guard, self._n_train, self._alpha)
         effective_thresh = np.maximum(cfar_thresh, self._min_cfar_abs)
 
-        peak_int          = float(np.max(integrated)) if integrated.any() else 0.0
-        cfar_norm_factor  = max(peak_int, float(np.max(effective_thresh)))
+        peak_int         = float(np.max(integrated)) if integrated.any() else 0.0
+        cfar_norm_factor = max(peak_int, float(np.max(effective_thresh)))
 
         if normalize:
             if cfar_norm_factor > 1e-30:
@@ -179,11 +155,11 @@ class CfarWidget(pg.PlotWidget):
             self.setYRange(0, max(cfar_norm_factor * 1.2, MIN_Y_CFAR))
 
         # Detecção dos picos que superam o threshold
-        binary      = (integrated > effective_thresh).astype(float) * integrated
-        min_dist    = max(1, int(0.04 * self._fs))
-        peaks, _    = scipy.signal.find_peaks(binary, distance=min_dist)
+        binary   = (integrated > effective_thresh).astype(float) * integrated
+        min_dist = max(1, int(0.04 * self._fs))
+        peaks, _ = scipy.signal.find_peaks(binary, distance=min_dist)
 
-        # Plot dos picos (scatter amarelo, coordenadas da curva normalizada ou bruta)
+        # Plot dos picos (scatter amarelo)
         if normalize and cfar_norm_factor > 1e-30:
             spots_y = integrated[peaks] / cfar_norm_factor
         else:

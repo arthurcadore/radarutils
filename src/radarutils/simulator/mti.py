@@ -1,42 +1,21 @@
-import numpy as np
-
-class MTI:
-    """
-    Cancelador delay-line (1 atraso) — suprime ecos fixos (Clutter).
-    """
-    def __init__(self, n_samples: int):
-        self._mf_prev = np.zeros(n_samples)
-
-    def process(self, comp_disp: np.ndarray) -> np.ndarray:
-        """
-        Aplica o filtro MTI subtraindo o pulso anterior do atual.
-        
-        Args:
-            comp_disp: Sinal atual (saída do filtro casado).
-            
-        Returns:
-            O sinal pós-MTI (valor absoluto da diferença).
-        """
-        # Subtrai o pulso MF anterior do atual — cancela ecos fixos (clutter)
-        mti_output = np.abs(comp_disp - self._mf_prev)
-        self._mf_prev = comp_disp.copy()
-        return mti_output
-
-
 """
-mti_widget.py — Widget de visualização do filtro MTI.
+mti.py — Widget de visualização do filtro MTI.
 
-Encapsula o algoritmo MTI (Moving Target Indicator) de ``mti.py``
+Encapsula o algoritmo MTI (Moving Target Indicator) de ``radarutils.core.mti``
 num widget PyQtGraph pronto para uso no painel de processamento.
 
 O MTI (cancelador delay-line de 1 atraso) subtrai o pulso comprimido
 do PRI anterior do atual, cancelando ecos de alvos fixos (clutter
 estático) e realçando retornos de alvos em movimento.
+
+A implementação matemática reside em:
+    radarutils.core.mti.MTI
 """
 
 import numpy as np
 import pyqtgraph as pg
 
+from radarutils.core.mti import MTI
 from radarutils.simulator.constants import N_SAMPLES, MIN_Y_MTI
 
 
@@ -44,7 +23,8 @@ class MTIWidget(pg.PlotWidget):
     """
     Widget de plot para a saída do filtro MTI.
 
-    Herda de ``pg.PlotWidget`` e delega o cálculo ao ``MTI`` de ``mti.py``.
+    Herda de ``pg.PlotWidget`` e delega o cálculo ao ``MTI`` de
+    ``radarutils.core.processing``.
 
     Internamente mantém o estado do pulso anterior (necessário para a
     subtração delay-line).  A cada chamada de ``update()``:
