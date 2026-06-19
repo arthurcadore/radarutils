@@ -1,24 +1,29 @@
 """
 integrator.py — Widget de visualização do Integrador de Pulsos.
 
-Encapsula o ``PulseIntegrator`` de ``radarutils.core.integrator`` num widget
+Encapsula um ``PulseIntegrator`` de ``radarutils.core.integrator`` num widget
 PyQtGraph pronto para uso no painel de processamento.
 
-Dois modos de integração:
-  - **Não-Coerente**: soma as potências (|mti|²) dos últimos N_INT PRIs.
+Tipos suportados (via ``integrator_from_str``):
+  - **'noncoherent'**: soma as potências (|mti|²) dos últimos N_INT PRIs.
     Ganho de SNR ≈ √N_INT (10·log₁₀(N_INT) dB).
-  - **Coerente**: soma as amplitudes complexas IQ dos últimos N_INT PRIs
+  - **'coherent'**: soma as amplitudes complexas IQ dos últimos N_INT PRIs
     e extrai o envelope de potência |soma|².
     Ganho de SNR ≈ N_INT (20·log₁₀(N_INT) dB), porém requer coerência
     de fase entre PRIs.
 
 A implementação matemática reside em:
-    radarutils.core.integrator.PulseIntegrator
+    radarutils.core.integrator
 """
 
 import numpy as np
 import pyqtgraph as pg
-from radarutils.core.integrator import PulseIntegrator
+from radarutils.core.integrator import (
+    PulseIntegrator,
+    CoherentIntegrator,
+    integrator_from_str,
+    VALID_INTEGRATOR_TYPES,
+)
 from radarutils.simulator.constants import N_SAMPLES, N_INT, MIN_Y_INT
 
 
@@ -26,15 +31,16 @@ class IntegratorWidget(pg.PlotWidget):
     """
     Widget de plot para a saída do Integrador de Pulsos.
 
-    Herda de ``pg.PlotWidget`` e delega o cálculo ao ``PulseIntegrator``
-    de ``radarutils.core.processing``.
+    Herda de ``pg.PlotWidget`` e delega o cálculo a uma instância de
+    ``PulseIntegrator`` (CoherentIntegrator ou NonCoherentIntegrator).
 
-    O modo (coerente vs. não-coerente) é fixado na construção.
+    O modo de integração é fixado na construção via ``integrator_type``
+    ou, alternativamente, pelo flag booleano legado ``coherent``.
     Uma legenda no canto superior esquerdo indica o modo ativo.
 
     Uso::
 
-        w = IntegratorWidget(t_us, coherent=True, link_x_to=mti_plot)
+        w = IntegratorWidget(t_us, integrator_type='coherent', n_int=8)
         integrated = w.update(mti_out, comp_complex, normalize=True)
     """
 
@@ -44,19 +50,30 @@ class IntegratorWidget(pg.PlotWidget):
         coherent: bool = False,
         n_int: int = N_INT,
         link_x_to=None,
+        integrator_type: str | None = None,
     ):
         """
         Args:
-            t_us:       Eixo de tempo em µs (compartilhado com os demais plots).
-            coherent:   Se True, usa integração coerente (IQ). Padrão: não-coerente.
-            n_int:      Número de PRIs a integrar. Padrão: N_INT de constants.py.
-            link_x_to: PlotItem ao qual sincronizar o eixo X (opcional).
+            t_us:             Eixo de tempo em µs (compartilhado com os demais plots).
+            coherent:         Flag legado — se True, equivale a integrator_type='coherent'.
+                              Ignorado quando ``integrator_type`` for fornecido explicitamente.
+            n_int:            Número de PRIs a integrar. Padrão: N_INT de constants.py.
+            link_x_to:        PlotItem ao qual sincronizar o eixo X (opcional).
+            integrator_type:  Nome do integrador: 'noncoherent' ou 'coherent'.
+                              Se None, usa o flag ``coherent`` para compatibilidade.
         """
         super().__init__()
 
-        self._t_us       = t_us
-        self._integrator = PulseIntegrator(n_int=n_int, coherent=coherent)
-        self._coherent   = coherent
+        self._t_us = t_us
+
+        # Resolução do tipo: integrator_type tem precedência sobre o flag booleano
+        if integrator_type is not None:
+            self._integrator: PulseIntegrator = integrator_from_str(integrator_type, n_int)
+        else:
+            mode = "coherent" if coherent else "noncoherent"
+            self._integrator = integrator_from_str(mode, n_int)
+
+        self._is_coherent = isinstance(self._integrator, CoherentIntegrator)
 
         # Configuração visual
         self.setBackground('k')
@@ -79,7 +96,7 @@ class IntegratorWidget(pg.PlotWidget):
         legend = self.addLegend(colCount=1)
         legend.setBrush(pg.mkBrush(0, 0, 0, 160))
         legend.anchor(itemPos=(0, 0), parentPos=(0, 0), offset=(0, 0))
-        mode_str = "Coherent" if coherent else "Non-Coherent"
+        mode_str = "Coherent" if self._is_coherent else "Non-Coherent"
         legend.addItem(
             pg.PlotDataItem(pen=pg.mkPen((210, 210, 210), width=1)),
             f"Mode: {mode_str}",
@@ -103,15 +120,15 @@ class IntegratorWidget(pg.PlotWidget):
             integrated = |Σ iq_i|²    (soma vetorial → melhora SNR linear)
 
         Args:
-            mti_out:     Sinal pós-MTI do PRI atual (real, positivo).
+            mti_out:      Sinal pós-MTI do PRI atual (real, positivo).
             comp_complex: Sinal complexo do MF do PRI atual (necessário se coerente=True).
-            normalize:   Se True, normaliza o eixo Y para [0, 1].
+            normalize:    Se True, normaliza o eixo Y para [0, 1].
 
         Returns:
             np.ndarray — sinal integrado (potência acumulada).
         """
         integrated = self._integrator.process(
-            mti_out, comp_complex if self._coherent else None
+            mti_out, comp_complex if self._is_coherent else None
         )
         peak_int = float(np.max(integrated)) if integrated.any() else 0.0
 

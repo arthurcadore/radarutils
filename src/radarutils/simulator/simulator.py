@@ -5,6 +5,7 @@ import numpy as np
 
 from radarutils.simulator.ppi import PPI
 from radarutils.core.clutter import VALID_CLUTTER_TYPES
+from radarutils.core.integrator import VALID_INTEGRATOR_TYPES
 
 class Simulator:
     r"""
@@ -136,7 +137,7 @@ class Simulator:
         self.ppi.add_regional_clutter(x, y, radius, intensity, distribution, **kwargs)
 
     def run(self, gui: bool = True, show_vectors: bool = False, output_file: str = None,
-            coherent_integration: bool = False, clutter_type: str = "None", normalize_plots: bool = True,
+            integrator_type: str = "noncoherent", clutter_type: str = "None", normalize_plots: bool = True,
             max_video_mb: float = None, video_quality: int = 8):
         r"""
         Executa a simulação.
@@ -145,7 +146,7 @@ class Simulator:
             gui (bool): Se True, roda sem interface gráfica (apenas terminal).
             show_vectors (bool): (modo com tela) Exibe vetores de velocidade dos targets.
             output_file (str): (modo com tela) Caminho para salvar o vídeo MP4. None = sem gravação.
-            coherent_integration (bool): Se True, usa integração coerente (soma de amplitudes IQ). Se False (padrão), usa integração não-coerente (soma de potências).
+            integrator_type (str): Tipo de integrador de pulso ('noncoherent' ou 'coherent').
             clutter_type (str): Tipo de clutter a ser aplicado.
             normalize_plots (bool): Se True, normaliza os gráficos da terceira coluna (e Filtro Casado) de 0 a 1.
             max_video_mb (float): Tamanho máximo em MB para o vídeo gerado. A simulação para ao atingir.
@@ -157,7 +158,7 @@ class Simulator:
             self._qt_exit_code = self._run_with_screen(
                 show_vectors=show_vectors,
                 output_file=output_file,
-                coherent_integration=coherent_integration,
+                integrator_type=integrator_type,
                 clutter_type=clutter_type,
                 normalize_plots=normalize_plots,
                 max_video_mb=max_video_mb,
@@ -191,7 +192,7 @@ class Simulator:
         print(f"=== Simulation finished at t={self.ppi.elapsed_time:.2f}s ===")
 
     def _run_with_screen(self, show_vectors: bool = False, output_file: str = None,
-                         coherent_integration: bool = False, clutter_type: str = "None", normalize_plots: bool = True,
+                         integrator_type: str = "noncoherent", clutter_type: str = "None", normalize_plots: bool = True,
                          max_video_mb: float = None, video_quality: int = 8) -> int:
         r"""Abre a janela Qt e executa o loop de eventos. Retorna o exit code."""
         import pyqtgraph as pg
@@ -205,7 +206,7 @@ class Simulator:
             ppi=self.ppi,
             show_vectors=show_vectors,
             output_file=output_file,
-            coherent_integration=coherent_integration,
+            integrator_type=integrator_type,
             clutter_type=clutter_type,
             normalize_plots=normalize_plots,
             max_video_mb=max_video_mb,
@@ -295,9 +296,12 @@ if __name__ == '__main__':
         help='Roda a simulação sem interface gráfica (apenas terminal)',
     )
     parser.add_argument(
-        '--coherent',
-        action='store_true',
-        help='Usa integração coerente (soma IQ). Padrão: não-coerente (soma de potências).',
+        '--integrator',
+        type=lambda s: s.lower().replace('-', '').replace('_', ''),
+        default='noncoherent',
+        choices=VALID_INTEGRATOR_TYPES,
+        metavar='{' + '|'.join(VALID_INTEGRATOR_TYPES) + '}',
+        help='Tipo de integrador de pulso. Opções: ' + ', '.join(f"'{v}'" for v in VALID_INTEGRATOR_TYPES),
     )
     parser.add_argument(
         '--no-vectors',
@@ -360,7 +364,7 @@ if __name__ == '__main__':
         gui=args.gui,
         show_vectors=not args.no_vectors,
         output_file=output_path,
-        coherent_integration=False,
+        integrator_type=args.integrator,
         clutter_type=args.clutter,
         normalize_plots=not args.no_normalize,
         max_video_mb=args.max_mb,

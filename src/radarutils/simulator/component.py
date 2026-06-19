@@ -23,6 +23,7 @@ import abc
 import numpy as np
 
 from ..core.basics import calc_max_prf
+from ..core.clutter import VALID_CLUTTER_TYPES
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -393,7 +394,7 @@ class RegionalClutter:
         _clutter_model:      Instância de ``Clutter`` usada para geração das amostras.
     """
 
-    VALID_DISTRIBUTIONS: tuple[str, ...] = ("rayleigh", "rice", "weibull")
+
 
     def __init__(
         self,
@@ -419,10 +420,11 @@ class RegionalClutter:
             ValueError: Se ``radius`` ≤ 0.
         """
         dist_key = distribution.strip().lower()
-        if dist_key not in self.VALID_DISTRIBUTIONS:
-            valid = ", ".join(f"'{d}'" for d in self.VALID_DISTRIBUTIONS)
+        # 'none' é válido globalmente, mas não faz sentido para um clutter regional
+        if dist_key not in VALID_CLUTTER_TYPES or dist_key == "none":
+            valid = ", ".join(f"'{d}'" for d in VALID_CLUTTER_TYPES if d != "none")
             raise ValueError(
-                f"Distribuição de clutter desconhecida: '{distribution}'. "
+                f"Distribuição de clutter desconhecida ou inválida: '{distribution}'. "
                 f"Opções válidas: {valid}."
             )
         if radius <= 0:

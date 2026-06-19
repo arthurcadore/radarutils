@@ -59,7 +59,7 @@ class PulseWidget(QtWidgets.QSplitter):
         self,
         ppi: PPI = None,
         snr_db: float = None,
-        coherent_integration: bool = False,
+        integrator_type: str = "noncoherent",
         clutter_type: str = "None",
         normalize_plots: bool = True,
     ):
@@ -75,7 +75,7 @@ class PulseWidget(QtWidgets.QSplitter):
 
         self.ppi                  = ppi
         self.snr_db               = snr_db if snr_db is not None else DEFAULT_SNR_DB
-        self.coherent_integration = coherent_integration
+        self.integrator_type      = integrator_type
         self.normalize_plots      = normalize_plots
 
         # Instancia o modelo de clutter (ou None se desativado)
@@ -386,7 +386,7 @@ class PulseWidget(QtWidgets.QSplitter):
         t_total = self.ppi.t                    if self.ppi           else 0.0
         r_max   = self.ppi.r_max                if self.ppi           else 0.0
         c_str        = self._clutter_name
-        int_mode_str = "Coherent" if self.coherent_integration else "Non-Coherent"
+        int_mode_str = "Coherent" if self.integrator_type == "coherent" else "Non-Coherent"
 
         html = get_pulse_header_html(
             PRI_us=PRI_us,

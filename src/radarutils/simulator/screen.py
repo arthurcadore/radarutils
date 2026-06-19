@@ -86,14 +86,14 @@ class ProcessingWidget(QtWidgets.QSplitter):
         self,
         ppi: PPI,
         pulse_widget: PulseWidget,
-        coherent_integration: bool = False,
+        integrator_type: str = "noncoherent",
         normalize_plots: bool = True,
     ):
         r"""
         Args:
             ppi (PPI): Instância de PPI com radar e targets.
             pulse_widget (PulseWidget): PulseWidget da coluna do meio (fornece t_us, T_PRI, etc.).
-            coherent_integration (bool): Se True, usa integração coerente no IntegratorWidget.
+            integrator_type (str): Tipo de integração ('coherent' ou 'noncoherent').
             normalize_plots (bool): Se True, normaliza eixos Y de todos os plots para [0, 1].
         """
         super().__init__(QtCore.Qt.Vertical)
@@ -123,7 +123,7 @@ class ProcessingWidget(QtWidgets.QSplitter):
         # IntegratorWidget — acumula PRIs (coerente ou não-coerente)
         self._int_w = IntegratorWidget(
             t_us=t_us,
-            coherent=coherent_integration,
+            integrator_type=integrator_type,
             n_int=N_INT,
         )
         self._int_w.setXLink(self._mti_w.getPlotItem())
@@ -269,7 +269,7 @@ class MainWindow(QtWidgets.QMainWindow):
         ppi: PPI,
         show_vectors: bool = True,
         output_file: str = None,
-        coherent_integration: bool = False,
+        integrator_type: str = "noncoherent",
         clutter_type: str = "None",
         normalize_plots: bool = True,
         max_video_mb: float = None,
@@ -280,7 +280,7 @@ class MainWindow(QtWidgets.QMainWindow):
             ppi (PPI): Instância de PPI já configurada com radar e targets.
             show_vectors (bool): Se True, exibe vetores de velocidade no PPIViewer.
             output_file (str): Caminho do arquivo MP4 de saída. None = sem gravação.
-            coherent_integration (bool): Passa para ProcessingWidget (modo de integração).
+            integrator_type (str): Passa para ProcessingWidget e PulseWidget (modo de integração).
             clutter_type (str): Tipo de clutter ('None' ou 'Rayleigh').
             normalize_plots (bool): Se True, normaliza eixos Y dos plots de processamento.
             max_video_mb (float): Tamanho máximo do vídeo em MB. Encerra ao atingir.
@@ -337,7 +337,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self._pulse_widget = PulseWidget(
             ppi=ppi,
-            coherent_integration=coherent_integration,
+            integrator_type=integrator_type,
             clutter_type=clutter_type,
             normalize_plots=normalize_plots,
         )
@@ -352,7 +352,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._proc_widget = ProcessingWidget(
             ppi=ppi,
             pulse_widget=self._pulse_widget,
-            coherent_integration=coherent_integration,
+            integrator_type=integrator_type,
             normalize_plots=normalize_plots,
         )
         proc_layout.addWidget(self._proc_widget, stretch=1)
