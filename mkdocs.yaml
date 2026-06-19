@@ -57,6 +57,7 @@ nav:
   - Core: 
       - Radar Basics: docs/core/basics.md
       - Clutter: docs/core/clutter.md
+      - Integrator: docs/core/integrator.md
   - Simulator:
       - Simulator: docs/simulator/simulator.md
       

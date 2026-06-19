@@ -313,6 +313,8 @@ class TimePlot(BasePlot):
         signals (Union[np.ndarray, List[np.ndarray]]): Signal or list of signals $s(t)$.
         time_unit (str): Time unit for plotting ("ms" by default, can be "s").
         amp_norm (bool): Signal normalization for maximum amplitude
+        log_y (bool): If `True`, plots the y-axis in a logarithmic scale
+        ylim (Optional[Tuple[float, float]]): Limits for the y-axis
 
     Examples:
         - Modulator Time Domain Example: ![pageplot](assets/example_modulator_time.svg)
@@ -326,11 +328,14 @@ class TimePlot(BasePlot):
                  signals: Union[np.ndarray, List[np.ndarray]],
                  time_unit: str = "ms",
                  amp_norm: bool = False,
+                 log_y: bool = False,
+                 ylim: Optional[Tuple[float, float]] = None,
                  **kwargs) -> None:
         ax = fig.add_subplot(grid[pos])
-        super().__init__(ax, **kwargs)
+        super().__init__(ax, ylim=ylim, **kwargs)
 
         self.amp_norm = amp_norm
+        self.log_y = log_y
 
         # Copy the input signals to avoid modifying the original signal
         original_signals = signals if isinstance(signals, (list, tuple)) else [signals]
@@ -369,8 +374,18 @@ class TimePlot(BasePlot):
         # Labels
         xlabel = r"Time (ms)" if self.time_unit == "ms" else r"Time ($s$)"
         self.ax.set_xlabel(xlabel)
-        self.ax.set_ylabel(r"Amplitude")
+        
+        if self.log_y:
+            self.ax.set_ylabel(r"Power (log)")
+            self.ax.set_yscale("log")
+        else:
+            self.ax.set_ylabel(r"Amplitude")
+            
         self.apply_ax_style()
+        
+        # Enable minor grid lines for better log scale visualization
+        if self.log_y:
+            self.ax.grid(True, which="minor", axis="y", alpha=0.3, linestyle="--", linewidth=0.5)
 
 
 class FrequencyPlot(BasePlot):

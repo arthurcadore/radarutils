@@ -72,6 +72,9 @@ class PulseIntegrator(abc.ABC):
     Subclasses concretas implementam ``process()`` com sua lógica específica
     de acumulação.
 
+    Examples:
+        ![integrator_chain_noncoherent](../../assets/plots/integrator_chain_noncoherent.svg)
+
     Attributes:
         n_int (int):     Número de PRIs a integrar.
         _buffer (deque): Buffer circular dos sinais recentes.
@@ -120,6 +123,9 @@ class NonCoherentIntegrator(PulseIntegrator):
     Vantagem: robusto a variações de fase entre PRIs (ideal quando não há
     coerência de fase garantida entre pulsos).
 
+    Examples: 
+        ![integrator_pulses_noncoherent](../../assets/plots/integrator_pulses_noncoherent.svg)
+
     <div class="referencia">
         <b>Reference:</b>
         <p>Merill I. Skolnik — Introduction To Radar Systems, 3rd Ed. (Cap. 2).</p>
@@ -158,6 +164,9 @@ class CoherentIntegrator(PulseIntegrator):
 
     Ganho de SNR ≈ :math:`N_{\text{int}}` (≈ :math:`20\log_{10}(N_{\text{int}})` dB),
     porém exige coerência de fase entre PRIs consecutivos.
+
+    Examples: 
+        ![integrator_pulses_coherent](../../assets/plots/integrator_pulses_coherent.svg)
 
     <div class="referencia">
         <b>Reference:</b>

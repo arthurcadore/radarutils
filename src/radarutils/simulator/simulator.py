@@ -218,7 +218,7 @@ class Simulator:
 
 def _build_default_simulator() -> Simulator:
     """Cria o simulador com a configuração padrão de demonstração."""
-    sim = Simulator(dimensions=(2400, 2400), dt=0.06, t=180.0, r_max=1200.0)
+    sim = Simulator(dimensions=(2400, 2400), dt=0.03, t=180.0, r_max=1200.0)
 
     sim.add_radar(theta=0, rpm=5, clockwise=True, beamwidth=10)
 
@@ -273,7 +273,7 @@ def _build_default_simulator() -> Simulator:
 
     sim.add_regional_clutter(
         x=800, y=-400, radius=150,  intensity=1e-3,
-        distribution="rice", k_factor=0.6
+        distribution="weibull", shape=1.6
     )
     sim.add_regional_clutter(
         x=-400, y=-400, radius=100, intensity=1e-3,
@@ -282,7 +282,7 @@ def _build_default_simulator() -> Simulator:
 
     sim.add_regional_clutter(
         x=-900, y=+500, radius=100, intensity=1e-3,
-        distribution="rayleigh", k_factor=0.6
+        distribution="weibull", shape=1.6
     )
 
     return sim
@@ -298,7 +298,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--integrator',
         type=lambda s: s.lower().replace('-', '').replace('_', ''),
-        default='noncoherent',
+        default='coherent',
         choices=VALID_INTEGRATOR_TYPES,
         metavar='{' + '|'.join(VALID_INTEGRATOR_TYPES) + '}',
         help='Tipo de integrador de pulso. Opções: ' + ', '.join(f"'{v}'" for v in VALID_INTEGRATOR_TYPES),

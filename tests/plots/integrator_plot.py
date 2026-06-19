@@ -45,8 +45,8 @@ def plot_integration_chain(coherent: bool):
     R0 = 10000.0          # Initial distance 10 km
     v_r = 150.0           # Radial velocity 150 m/s
     amplitude = 0.05      # Simulated attenuation from the radar equation
-    snr_db = 10.0         # Signal-to-Noise Ratio (AWGN) in dB
-    n_int = 10            # Number of pulses to integrate
+    snr_db = 8.0         # Signal-to-Noise Ratio (AWGN) in dB
+    n_int = 5           # Number of pulses to integrate
     
     mti_pulses = []
     out_integrated = np.zeros(n_samples)
@@ -110,7 +110,7 @@ def plot_integration_chain(coherent: bool):
     rx_noisy_0 = apply_awgn(rx_real_0, snr_db=snr_db, peak_amplitude=amplitude)
     
     tp2 = TimePlot(fig1, grid1, pos=(1, 0), t=t_us, signals=rx_noisy_0, time_unit="s",
-                   title=f"Rx Pulse (Attenuated + Delayed + AWGN SNR={snr_db}dB)", colors=["orange"], labels=["RX"])
+                   title=f"Rx Pulse (Attenuated + Delayed + AWGN SNR={snr_db}dB)", colors=["orange"], labels=["RX"], amp_norm=True)
     tp2.plot()
     tp2.ax.set_xlabel("Time (µs)")
     tp2.ax.set_ylabel("Amplitude")
@@ -126,7 +126,7 @@ def plot_integration_chain(coherent: bool):
     
     # Colors and labels for multiple pulses
     colors_mp = [f"C{i%10}" for i in range(n_int)]
-    labels_mp = [f"Pulse {i+1}" if i < 5 else "" for i in range(n_int)]
+    labels_mp = [f"Pulse {i+1}" for i in range(n_int)]
     
     tp4 = TimePlot(fig2, grid2, pos=(0, 0), t=t_us, signals=mti_pulses, time_unit="s",
                    title="Post-MF Pulses", colors=colors_mp, labels=labels_mp)
@@ -138,10 +138,9 @@ def plot_integration_chain(coherent: bool):
         line.set_alpha(0.6)
         
     tp5 = TimePlot(fig2, grid2, pos=(1, 0), t=t_us, signals=out_integrated, time_unit="s",
-                   title=f"Integrated Output ({mode_str})", colors=["red"], labels=["Integrated"])
+                   title=f"Integrated Output ({mode_str})", colors=["red"], labels=["Integrated"], log_y=True, ylim=[0.001, 1000])
     tp5.plot()
     tp5.ax.set_xlabel("Time (µs)")
-    tp5.ax.set_ylabel("Power")
     
     # Save to assets/
     suffix = "coherent" if coherent else "noncoherent"

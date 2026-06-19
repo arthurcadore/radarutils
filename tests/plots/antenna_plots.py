@@ -21,28 +21,28 @@ def main():
         res_deg=1,
         pattern_type="isotropic",
         gain_dBi=10,
-        beamw_deg=45
+        beamw_deg=10
     )
 
     gp2 = GainPattern(
         res_deg=1,
         pattern_type="ideal",
         gain_dBi=10,
-        beamw_deg=45
+        beamw_deg=10
     )
 
     gp3 = GainPattern(
         res_deg=1,
         pattern_type="sinc",
         gain_dBi=10,
-        beamw_deg=45
+        beamw_deg=10
     )
 
     gp4 = GainPattern(
         res_deg=1,
         pattern_type="cosine",
         gain_dBi=10,
-        beamw_deg=45
+        beamw_deg=10
     )
 
     # Create 2x2 grid plot
