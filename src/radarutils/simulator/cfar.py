@@ -110,32 +110,22 @@ class CfarWidget(pg.PlotWidget):
         legend.setBrush(pg.mkBrush(0, 0, 0, 160))
         legend.anchor(itemPos=(0, 0), parentPos=(0, 0), offset=(0, 0))
 
-    def update(self, integrated: np.ndarray, normalize: bool = True) -> np.ndarray:
+    def update_plot(
+        self,
+        integrated: np.ndarray,
+        effective_thresh: np.ndarray,
+        peaks: np.ndarray,
+        normalize: bool = True
+    ) -> None:
         """
-        Calcula o threshold CA-CFAR, detecta picos e atualiza o plot.
-
-        Pipeline interno:
-          1. Chama ``ca_cfar()`` para obter o threshold adaptativo para
-             cada célula do sinal integrado.
-          2. Aplica piso mínimo absoluto (``min_cfar_abs``) para evitar
-             falsos alarmes em regiões com apenas AWGN puro.
-          3. Identifica amostras onde ``integrated > threshold``.
-          4. Usa ``scipy.signal.find_peaks`` para separar picos distintos
-             (distância mínima ≈ 4% da taxa de amostragem).
-          5. Atualiza curvas e scatter.
+        Atualiza o plot CFAR com os dados já computados pelo pipeline.
 
         Args:
-            integrated: Sinal de potência acumulada (saída do Integrador).
-            normalize:  Se True, normaliza sinal e threshold para [0, 1]
-                        usando o mesmo fator (preserva proporção visual).
-
-        Returns:
-            np.ndarray de inteiros — índices dos picos detectados no sinal.
+            integrated: Sinal de potência acumulada.
+            effective_thresh: Threshold adaptativo (limiar + piso absoluto).
+            peaks: Índices dos picos detectados.
+            normalize: Se True, normaliza sinal e threshold para [0, 1].
         """
-        # Threshold adaptativo por célula
-        cfar_thresh      = ca_cfar(integrated, self._n_guard, self._n_train, self._alpha)
-        effective_thresh = np.maximum(cfar_thresh, self._min_cfar_abs)
-
         peak_int         = float(np.max(integrated)) if integrated.any() else 0.0
         cfar_norm_factor = max(peak_int, float(np.max(effective_thresh)))
 
@@ -154,16 +144,12 @@ class CfarWidget(pg.PlotWidget):
             self._thr_curve.setData(self._t_us, effective_thresh)
             self.setYRange(0, max(cfar_norm_factor * 1.2, MIN_Y_CFAR))
 
-        # Detecção dos picos que superam o threshold
-        binary   = (integrated > effective_thresh).astype(float) * integrated
-        min_dist = max(1, int(0.04 * self._fs))
-        peaks, _ = scipy.signal.find_peaks(binary, distance=min_dist)
-
         # Plot dos picos (scatter amarelo)
-        if normalize and cfar_norm_factor > 1e-30:
-            spots_y = integrated[peaks] / cfar_norm_factor
+        if len(peaks) > 0:
+            if normalize and cfar_norm_factor > 1e-30:
+                spots_y = integrated[peaks] / cfar_norm_factor
+            else:
+                spots_y = integrated[peaks]
+            self._spots.setData(self._t_us[peaks], spots_y)
         else:
-            spots_y = integrated[peaks]
-        self._spots.setData(self._t_us[peaks], spots_y)
-
-        return peaks
+            self._spots.setData([], [])

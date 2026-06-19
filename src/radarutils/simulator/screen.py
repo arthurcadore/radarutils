@@ -35,8 +35,12 @@ from radarutils.simulator.constants import (
 )
 
 # ── Widgets visuais especializados ───────────────────────────────────────
+from radarutils.simulator.pipeline import RadarPipeline, PipelineFrontendWidget
+from radarutils.core.mti import MTI
+from radarutils.core.integrator import integrator_from_str, CoherentIntegrator
+
+# ── Widgets visuais especializados ───────────────────────────────────────
 from radarutils.simulator.plots import DetectionPlot, AmplitudePlot, PhasePlot
-from radarutils.simulator.pulse_modulation import PulseWidget
 from radarutils.simulator.mti import MTIWidget
 from radarutils.simulator.integrator import IntegratorWidget
 from radarutils.simulator.cfar import CfarWidget
@@ -84,30 +88,28 @@ class ProcessingWidget(QtWidgets.QSplitter):
 
     def __init__(
         self,
-        ppi: PPI,
-        pulse_widget: PulseWidget,
-        integrator_type: str = "noncoherent",
-        normalize_plots: bool = True,
+        pipeline: RadarPipeline,
+        baseband_widget: PipelineFrontendWidget,
     ):
         r"""
         Args:
-            ppi (PPI): Instância de PPI com radar e targets.
-            pulse_widget (PulseWidget): PulseWidget da coluna do meio (fornece t_us, T_PRI, etc.).
-            integrator_type (str): Tipo de integração ('coherent' ou 'noncoherent').
-            normalize_plots (bool): Se True, normaliza eixos Y de todos os plots para [0, 1].
+            pipeline (RadarPipeline): Instância do pipeline.
+            baseband_widget (PipelineFrontendWidget): Widget da coluna do meio.
         """
         super().__init__(QtCore.Qt.Vertical)
 
-        self._ppi       = ppi
-        self._pw        = pulse_widget
-        self._normalize = normalize_plots
+        self._pipeline  = pipeline
+        self._ppi       = pipeline.ppi
+        self._pw        = baseband_widget
+        self._normalize = pipeline.config.get('normalize_plots', True)
+        self._integrator_type = pipeline.config.get('integrator_type', 'noncoherent')
 
         self.setStyleSheet("QSplitter::handle { background-color: #555555; height: 3px; }")
 
-        # Taxa de amostragem: derivada do PulseWidget para garantir consistência
-        fs    = N_SAMPLES / pulse_widget.T_PRI
-        t_us  = pulse_widget.t_us
-        r_max = ppi.r_max
+        # Taxa de amostragem
+        fs    = self._pw.wp.fs
+        t_us  = self._pw.wp.t_us
+        r_max = self._ppi.r_max
 
         # ── Widgets de processamento de sinal ──────────────────────────────
         # Os três widgets de sinal são pg.PlotWidget, portanto adicionados
@@ -123,7 +125,7 @@ class ProcessingWidget(QtWidgets.QSplitter):
         # IntegratorWidget — acumula PRIs (coerente ou não-coerente)
         self._int_w = IntegratorWidget(
             t_us=t_us,
-            integrator_type=integrator_type,
+            integrator_type=self._integrator_type,
             n_int=N_INT,
         )
         self._int_w.setXLink(self._mti_w.getPlotItem())
@@ -150,6 +152,11 @@ class ProcessingWidget(QtWidgets.QSplitter):
         # Divisão inicial: metade para plots de sinal, metade para PPI Estimado
         self.setSizes([1000, 1000])
 
+        # ── PRI state: MTI e integrador instâncias puras do pipeline ───────
+        self._mti      = MTI(N_SAMPLES)
+        self._integrator = integrator_from_str(self._integrator_type, N_INT)
+        self._is_coherent = isinstance(self._integrator, CoherentIntegrator)
+
         # Buffer do sinal complexo do MF anterior (para estimativa de velocidade radial)
         self._mf_prev_complex = np.zeros(N_SAMPLES, dtype=complex)
 
@@ -161,18 +168,12 @@ class ProcessingWidget(QtWidgets.QSplitter):
         r"""
         Executa o pipeline completo de processamento para um PRI.
 
-        Sequência:
-          1. **MTI**        : cancela ecos de alvos fixos.
-          2. **Integrador** : acumula SNR em N_INT PRIs.
-          3. **CA-CFAR**    : define threshold adaptativo e detecta picos.
-          4. **PPI Estimado**: converte picos em coordenadas cartesianas,
-                               classifica (verdadeiro vs. FA) e atualiza display.
+        Toda a computação numérica é delegada às funções de
+        ``radarutils.simulator.pipeline``. Os widgets são responsáveis
+        apenas pela visualização dos resultados.
 
         Args:
-            pulse_data (dict): dict retornado por ``PulseWidget.update_pulse()``:
-                          'comp_disp'    : np.ndarray — saída real do MF.
-                          'comp_complex' : np.ndarray — saída complexa IQ do MF.
-                          'azimuth_deg'  : float      — azimute atual do radar.
+            pulse_data (dict): dict retornado por ``PulseWidget.update_pulse()``.
         """
         comp_disp    = pulse_data.get('comp_disp',    np.zeros(N_SAMPLES))
         comp_complex = pulse_data.get('comp_complex', np.zeros(N_SAMPLES, dtype=complex))
@@ -180,66 +181,57 @@ class ProcessingWidget(QtWidgets.QSplitter):
         r_max        = self._ppi.r_max
         az_rad       = math.radians(azimuth_deg)
 
-        # ── 1. MTI ────────────────────────────────────────────────────────
-        mti_out = self._mti_w.update(comp_disp, normalize=self._normalize)
+        # ── 1. MTI (pipeline) → widget visualiza ──────────────────────────
+        from radarutils.simulator.pipeline import mti_stage, integration_stage, cfar_stage, estimated_ppi_stage
+        
+        mti_out = mti_stage(comp_disp, self._mti)
+        self._mti_w.update_plot(mti_out, normalize=self._normalize)
 
-        # ── 2. Integração ─────────────────────────────────────────────────
-        integrated = self._int_w.update(mti_out, comp_complex, normalize=self._normalize)
+        # ── 2. Integração (pipeline) → widget visualiza ───────────────────
+        mf_cplx_for_int = comp_complex if self._is_coherent else None
+        integrated = integration_stage(mti_out, mf_cplx_for_int, self._integrator)
+        self._int_w.update_plot(integrated, normalize=self._normalize)
 
-        # ── 3. CA-CFAR ────────────────────────────────────────────────────
-        peaks_cfar = self._cfar_w.update(integrated, normalize=self._normalize)
+        # ── 3. CA-CFAR (pipeline) → widget visualiza ─────────────────────
+        peaks_cfar, threshold = cfar_stage(integrated, self._pw.wp.fs)
+        self._cfar_w.update_plot(integrated, threshold, peaks_cfar, normalize=self._normalize)
 
-        # ── 4. PPI Estimado ───────────────────────────────────────────────
+        # ── 4. PPI Estimado (pipeline) → tracker + viewer ─────────────────
         direction = -1 if (self._ppi and self._ppi.radar and self._ppi.radar.clockwise) else 1
         self._tracker.update_sweep(azimuth_deg, direction)
 
-        # Estimativa de velocidade radial por desvio de fase Doppler instantâneo
-        # Δφ = arg(MF*_anterior · MF_atual)  →  v_r = Δφ·λ / (4π·T_PRI)
-        lam       = C / 10e9   # comprimento de onda: banda X (10 GHz)
+        lam       = C / 10e9
         delta_phi = np.angle(np.conj(self._mf_prev_complex) * comp_complex)
-        vr_map    = delta_phi / (2.0 * np.pi * self._pw.T_PRI) * lam / 2.0
+        vr_map    = delta_phi / (2.0 * np.pi * self._pw.wp.T_PRI) * lam / 2.0
         self._mf_prev_complex = comp_complex.copy()
 
-        # Posições reais (ground truth) dos alvos para classificação TP/FA
         real_targets = [(tgt.x, tgt.y) for tgt in self._ppi.targets] if self._ppi else []
 
-        # Offset de bias introduzido pela cadeia correlate + roll no PulseWidget:
-        #   correlate(mode='same') → desloca (n_p-1)//2 amostras
-        #   roll(+n_p//2)         → adiciona n_p//2 amostras
-        #   Total: n_p - 1 amostras → erro ≈ r_max/7 sem correção
-        _mf_range_offset = self._pw.n_p - 1
+        detections_xy = estimated_ppi_stage(
+            peaks_cfar, azimuth_deg, self._pw.wp.t, r_max, self._pw.wp.n_p,
+        )
 
         new_true_vrs: list[float] = []
-
-        if len(peaks_cfar) > 0:
-            r_min_blind = r_max * 0.07   # zona cega (< R_min do radar)
-
+        _mf_range_offset = self._pw.wp.n_p - 1
+        
+        for x, y, range_est in detections_xy:
+            # Recupera o índice de pico mais próximo para vr_map
+            vr_est = 0.0
             for p in peaks_cfar:
-                # Índice corrigido para compensar o bias de range
-                p_corrected = max(0, p - _mf_range_offset)
-                range_est   = C * self._pw.t[p_corrected] / 2.0
+                p_c = max(0, p - _mf_range_offset)
+                if abs(C * self._pw.wp.t[p_c] / 2.0 - range_est) < 1.0:
+                    vr_est = float(vr_map[p])
+                    break
 
-                # Ignora detecções fora da faixa válida de range
-                if not (r_min_blind < range_est < r_max):
-                    continue
+            is_true, vr = self._tracker.add_detection(
+                x, y, azimuth_deg, vr_est, real_targets
+            )
+            if is_true:
+                new_true_vrs.append(vr)
 
-                # Converte range + azimute em coordenadas cartesianas
-                det_x  = range_est * math.cos(az_rad)
-                det_y  = range_est * math.sin(az_rad)
-                vr_est = float(vr_map[p])
-
-                # Classifica: True Positive (próximo de alvo real) ou Falso Alarme
-                is_true, vr = self._tracker.add_detection(
-                    det_x, det_y, azimuth_deg, vr_est, real_targets
-                )
-                if is_true:
-                    new_true_vrs.append(vr)
-
-        # Atualiza lista de velocidades radiais da última detecção verdadeira
         if new_true_vrs:
             self._tracker.last_detected_vrs = new_true_vrs.copy()
 
-        # Renderiza o PPI Estimado
         self._ppi_est_viewer.update_view(self._tracker, az_rad)
 
 
@@ -266,23 +258,17 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(
         self,
-        ppi: PPI,
+        pipeline: RadarPipeline,
         show_vectors: bool = True,
         output_file: str = None,
-        integrator_type: str = "noncoherent",
-        clutter_type: str = "None",
-        normalize_plots: bool = True,
         max_video_mb: float = None,
         video_quality: int = 8,
     ):
         r"""
         Args:
-            ppi (PPI): Instância de PPI já configurada com radar e targets.
+            pipeline (RadarPipeline): Instância com configurações e PPI.
             show_vectors (bool): Se True, exibe vetores de velocidade no PPIViewer.
             output_file (str): Caminho do arquivo MP4 de saída. None = sem gravação.
-            integrator_type (str): Passa para ProcessingWidget e PulseWidget (modo de integração).
-            clutter_type (str): Tipo de clutter ('None' ou 'Rayleigh').
-            normalize_plots (bool): Se True, normaliza eixos Y dos plots de processamento.
             max_video_mb (float): Tamanho máximo do vídeo em MB. Encerra ao atingir.
             video_quality (int): Qualidade de compressão do vídeo (0–10). Padrão: 8.
         """
@@ -290,7 +276,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle('PPI RADAR SIMULATOR')
         self.resize(2208, 992)
 
-        self._ppi           = ppi
+        self._pipeline      = pipeline
+        self._ppi           = pipeline.ppi
+        self._show_vectors  = show_vectors
         self._output_file   = output_file
         self._max_video_mb  = max_video_mb
         self._video_writer  = None
@@ -318,30 +306,25 @@ class MainWindow(QtWidgets.QMainWindow):
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_layout.setSpacing(4)
 
-        self._viewer     = PPIViewer(ppi, show_vectors=show_vectors)
-        self._det_plot   = DetectionPlot(ppi=ppi)
-        self._det_plot.setYRange(0, ppi.r_max)
-        self._amp_plot   = AmplitudePlot(ppi=ppi)
-        self._phase_plot = PhasePlot(ppi=ppi)
+        self._viewer     = PPIViewer(self._ppi, show_vectors=self._show_vectors)
+        self._det_plot   = DetectionPlot(ppi=self._ppi)
+        self._det_plot.setYRange(0, self._ppi.r_max)
+        self._amp_plot   = AmplitudePlot(ppi=self._ppi)
+        self._phase_plot = PhasePlot(ppi=self._ppi)
 
         left_layout.addWidget(self._viewer,     stretch=6)
         left_layout.addWidget(self._det_plot,   stretch=2)
         left_layout.addWidget(self._amp_plot,   stretch=2)
         left_layout.addWidget(self._phase_plot, stretch=2)
 
-        # ─── COLUNA 2: PulseWidget ────────────────────────────────────────
+        # ─── COLUNA 2: PipelineFrontendWidget ─────────────────────────────
         mid_panel  = QtWidgets.QWidget()
         mid_layout = QtWidgets.QVBoxLayout(mid_panel)
         mid_layout.setContentsMargins(0, 0, 0, 0)
         mid_layout.setSpacing(4)
 
-        self._pulse_widget = PulseWidget(
-            ppi=ppi,
-            integrator_type=integrator_type,
-            clutter_type=clutter_type,
-            normalize_plots=normalize_plots,
-        )
-        mid_layout.addWidget(self._pulse_widget, stretch=1)
+        self._baseband_w = PipelineFrontendWidget(pipeline=self._pipeline)
+        mid_layout.addWidget(self._baseband_w, stretch=1)
 
         # ─── COLUNA 3: ProcessingWidget ───────────────────────────────────
         proc_panel  = QtWidgets.QWidget()
@@ -350,10 +333,8 @@ class MainWindow(QtWidgets.QMainWindow):
         proc_layout.setSpacing(4)
 
         self._proc_widget = ProcessingWidget(
-            ppi=ppi,
-            pulse_widget=self._pulse_widget,
-            integrator_type=integrator_type,
-            normalize_plots=normalize_plots,
+            pipeline=self._pipeline,
+            baseband_widget=self._baseband_w,
         )
         proc_layout.addWidget(self._proc_widget, stretch=1)
 
@@ -385,8 +366,13 @@ class MainWindow(QtWidgets.QMainWindow):
             self.close()
             return
 
-        # Avança simulação e coleta detecções + clutters regionais ativos
-        detections, active_regional = self._ppi.update()
+        # Avança simulação e coleta todos os dados do frontend
+        pulse_data = self._pipeline.run_step()
+        detections = pulse_data['detections']
+        rx_noisy = pulse_data['rx_noisy']
+        comp_disp = pulse_data['comp_disp']
+        comp_complex = pulse_data['comp_complex']
+        azimuth_deg = pulse_data['azimuth_deg']
 
         # Atualiza coluna 1: PPI Real e plots de série temporal
         self._viewer.redraw()
@@ -395,12 +381,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self._amp_plot.add_detections(self._ppi.elapsed_time, detections)
         self._phase_plot.add_detections(self._ppi.elapsed_time, detections)
 
-        # Atualiza coluna 2: PulseWidget → retorna sinais processados
-        pulse_data = self._pulse_widget.update_pulse(detections, active_regional=active_regional)
+        # Atualiza widgets frontend (coluna 2)
+        self._baseband_w.update_plot(rx_noisy, comp_disp, azimuth_deg)
 
         # Atualiza coluna 3: pipeline MTI → Integrador → CFAR → PPI Estimado
-        if pulse_data:
-            self._proc_widget.update(pulse_data)
+        self._proc_widget.update(pulse_data)
 
         # Captura frame para vídeo (se gravação ativa)
         self._capture_video_frame()

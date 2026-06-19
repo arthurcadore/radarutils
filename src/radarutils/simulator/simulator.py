@@ -11,9 +11,8 @@ class Simulator:
     r"""
     Controla a simulação do radar PPI.
 
-    Todos os parâmetros de configuração (radar, targets, dimensões, tempo)
-    vivem aqui. A simulação pode rodar de forma headless (sem interface
-    gráfica) ou com a janela Qt, produzindo os mesmos resultados.
+    Coleta parâmetros de configuração e repassa ao RadarPipeline, que
+    orquestra a geração de dados e instancia o PPI.
     """
 
     def __init__(
@@ -23,176 +22,85 @@ class Simulator:
         t: float = 10.0,
         r_max: float = 1000.0,
     ):
-        r"""
-        Constructor methodology that initializes the simulator instance.
-
-        Args:
-            dimensions (tuple[int, int]): Dimensões do espaço de simulação em metros (largura, altura).
-            dt (float): Passo de tempo em segundos.
-            t (float): Duração total da simulação em segundos.
-            r_max (float): Alcance máximo do radar em metros.
-        """
-        self.ppi = PPI(dimensions=dimensions, dt=dt, t=t)
-        self.ppi.r_max = r_max
+        self.config = {
+            'dimensions': dimensions,
+            'dt': dt,
+            't': t,
+            'r_max': r_max,
+            'radar': None,
+            'targets': [],
+            'orbital_targets': [],
+            'nested_orbital_targets': [],
+            'regional_clutter': [],
+        }
 
     @property
     def dimensions(self) -> tuple[int, int]:
-        return self.ppi.dimensions
+        return self.config['dimensions']
 
     @property
     def dt(self) -> float:
-        return self.ppi.dt
+        return self.config['dt']
 
     @property
     def t(self) -> float:
-        return self.ppi.t
+        return self.config['t']
 
     @property
     def r_max(self) -> float:
-        return self.ppi.r_max
+        return self.config['r_max']
 
-    @property
-    def elapsed_time(self) -> float:
-        return self.ppi.elapsed_time
+    def add_radar(self, **kwargs):
+        self.config['radar'] = kwargs
 
-    def add_radar(
-        self,
-        theta: float = 0,
-        rpm: float = 15,
-        clockwise: bool = True,
-        pt: float = 1000,
-        gt: float = 30,
-        s_min: float = 1e-10,
-        beamwidth: float = 10,
-        deg_step: float = 0.1,
-        irradPattern=None,
-    ):
-        r"""Adiciona (e configura) o radar ao PPI."""
-        self.ppi.add_radar(
-            pt=pt,
-            gt=gt,
-            s_min=s_min,
-            beamwidth=beamwidth,
-            irradPattern=irradPattern,
-            theta=theta,
-            rpm=rpm,
-            clockwise=clockwise,
-            deg_step=deg_step,
-        )
+    def add_target(self, **kwargs):
+        self.config['targets'].append(kwargs)
 
-    def add_target(self, x: float, y: float, vel: float = 0, acc: float = 0, theta: float = 0):
-        r"""Adiciona um target cartesiano estático ou com movimento linear."""
-        self.ppi.add_target(x, y, vel, acc, theta)
+    def add_orbital_target(self, **kwargs):
+        self.config['orbital_targets'].append(kwargs)
 
-    def add_orbital_target(
-        self,
-        r: float,
-        speed: float,
-        acceleration: float = 0,
-        clockwise: bool = False,
-        alpha_start: float = 0,
-    ):
-        r"""Adiciona um target com movimento orbital circular."""
-        self.ppi.add_orbital_target(r, speed, acceleration, clockwise, alpha_start)
+    def add_nested_orbital_target(self, **kwargs):
+        self.config['nested_orbital_targets'].append(kwargs)
 
-    def add_nested_orbital_target(
-        self,
-        r1: float,
-        speed1: float,
-        acc1: float,
-        r2: float,
-        speed2: float,
-        acc2: float,
-        clockwise1: bool = False,
-        clockwise2: bool = False,
-        alpha1_start: float = 0,
-        alpha2_start: float = 0,
-    ):
-        r"""Adiciona um target com movimento epicíclico (órbita dentro de órbita)."""
-        self.ppi.add_nested_orbital_target(
-            r1, speed1, acc1, r2, speed2, acc2,
-            clockwise1, clockwise2,
-            alpha1_start, alpha2_start,
-        )
-
-    def add_regional_clutter(
-        self,
-        x: float,
-        y: float,
-        radius: float,
-        intensity: float,
-        distribution: str = "rayleigh",
-        **kwargs,
-    ) -> None:
-        r"""
-        Adiciona uma região circular de clutter ao PPI.
-
-        Args:
-            x, y:         Centro da região em metros.
-            radius:       Raio da região em metros (> 0).
-            intensity:    Amplitude característica do clutter (escala linear).
-            distribution: Modelo de amplitude: 'rayleigh', 'rice' ou 'weibull'.
-            **kwargs:     Parâmetros extras do modelo (ex.: k_factor, shape).
-        """
-        self.ppi.add_regional_clutter(x, y, radius, intensity, distribution, **kwargs)
+    def add_regional_clutter(self, **kwargs) -> None:
+        self.config['regional_clutter'].append(kwargs)
 
     def run(self, gui: bool = True, show_vectors: bool = False, output_file: str = None,
-            integrator_type: str = "noncoherent", clutter_type: str = "None", normalize_plots: bool = True,
+            integrator_type: str = "noncoherent", clutter_type: str = "none", normalize_plots: bool = True,
             max_video_mb: float = None, video_quality: int = 8):
-        r"""
-        Executa a simulação.
+        self.config['integrator_type'] = integrator_type
+        self.config['clutter_type'] = clutter_type
+        self.config['normalize_plots'] = normalize_plots
+        
+        from radarutils.simulator.pipeline import RadarPipeline
+        self.pipeline = RadarPipeline(self.config)
 
-        Args:
-            gui (bool): Se True, roda sem interface gráfica (apenas terminal).
-            show_vectors (bool): (modo com tela) Exibe vetores de velocidade dos targets.
-            output_file (str): (modo com tela) Caminho para salvar o vídeo MP4. None = sem gravação.
-            integrator_type (str): Tipo de integrador de pulso ('noncoherent' ou 'coherent').
-            clutter_type (str): Tipo de clutter a ser aplicado.
-            normalize_plots (bool): Se True, normaliza os gráficos da terceira coluna (e Filtro Casado) de 0 a 1.
-            max_video_mb (float): Tamanho máximo em MB para o vídeo gerado. A simulação para ao atingir.
-            video_quality (int): Qualidade do vídeo (0-10). Padrão: 8.
-        """
         if gui:
             self._run_headless()
         else:
             self._qt_exit_code = self._run_with_screen(
                 show_vectors=show_vectors,
                 output_file=output_file,
-                integrator_type=integrator_type,
-                clutter_type=clutter_type,
-                normalize_plots=normalize_plots,
                 max_video_mb=max_video_mb,
                 video_quality=video_quality,
             )
 
     @property
     def detection_log(self):
-        r"""Acesso direto ao DetectionLog acumulado pelo PPI."""
-        return self.ppi.detection_log
+        return self.pipeline.ppi.detection_log
 
     def export(self, path: str = "detections.csv") -> str:
-        r"""
-        Exporta todas as detecções acumuladas para um arquivo CSV.
-
-        Args:
-            path (str): Caminho do arquivo de saída.
-
-        Returns:
-            output (str): Caminho resolvido do arquivo criado.
-        """
-        output = self.ppi.detection_log.export(path)
-        print(f"Detections exported to: {output}  ({len(self.ppi.detection_log)} records)")
+        output = self.pipeline.ppi.detection_log.export(path)
+        print(f"Detections exported to: {output}  ({len(self.pipeline.ppi.detection_log)} records)")
         return str(output)
 
     def _run_headless(self):
-        r"""Loop de simulação sem interface gráfica."""
         print("=== Simulator running (headless) ===")
-        while self.ppi.elapsed_time < self.ppi.t:
-            self.ppi.update()  # retorna (detections, active_regional) — ignorado no headless
-        print(f"=== Simulation finished at t={self.ppi.elapsed_time:.2f}s ===")
+        while self.pipeline.ppi.elapsed_time < self.pipeline.ppi.t:
+            self.pipeline.run_step()
+        print(f"=== Simulation finished at t={self.pipeline.ppi.elapsed_time:.2f}s ===")
 
     def _run_with_screen(self, show_vectors: bool = False, output_file: str = None,
-                         integrator_type: str = "noncoherent", clutter_type: str = "None", normalize_plots: bool = True,
                          max_video_mb: float = None, video_quality: int = 8) -> int:
         r"""Abre a janela Qt e executa o loop de eventos. Retorna o exit code."""
         import pyqtgraph as pg
@@ -203,12 +111,9 @@ class Simulator:
         pg.setConfigOptions(antialias=True)
 
         window = MainWindow(
-            ppi=self.ppi,
+            pipeline=self.pipeline,
             show_vectors=show_vectors,
             output_file=output_file,
-            integrator_type=integrator_type,
-            clutter_type=clutter_type,
-            normalize_plots=normalize_plots,
             max_video_mb=max_video_mb,
             video_quality=video_quality,
         )

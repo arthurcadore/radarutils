@@ -102,34 +102,18 @@ class IntegratorWidget(pg.PlotWidget):
             f"Mode: {mode_str}",
         )
 
-    def update(
+    def update_plot(
         self,
-        mti_out: np.ndarray,
-        comp_complex: np.ndarray = None,
+        integrated: np.ndarray,
         normalize: bool = True,
-    ) -> np.ndarray:
+    ) -> None:
         """
-        Integra o sinal MTI nos últimos N_INT PRIs e atualiza o plot.
-
-        Modo não-coerente::
-
-            integrated = Σ |mti_i|²   (i = PRI atual − N_INT até atual)
-
-        Modo coerente::
-
-            integrated = |Σ iq_i|²    (soma vetorial → melhora SNR linear)
+        Atualiza o plot com o sinal integrado já computado pelo pipeline.
 
         Args:
-            mti_out:      Sinal pós-MTI do PRI atual (real, positivo).
-            comp_complex: Sinal complexo do MF do PRI atual (necessário se coerente=True).
+            integrated:   Sinal de potência acumulada computado.
             normalize:    Se True, normaliza o eixo Y para [0, 1].
-
-        Returns:
-            np.ndarray — sinal integrado (potência acumulada).
         """
-        integrated = self._integrator.process(
-            mti_out, comp_complex if self._is_coherent else None
-        )
         peak_int = float(np.max(integrated)) if integrated.any() else 0.0
 
         if normalize:
@@ -139,5 +123,3 @@ class IntegratorWidget(pg.PlotWidget):
         else:
             self._curve.setData(self._t_us, integrated)
             self.setYRange(0, max(peak_int * 1.15, MIN_Y_INT))
-
-        return integrated

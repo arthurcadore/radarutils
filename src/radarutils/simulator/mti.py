@@ -66,24 +66,14 @@ class MTIWidget(pg.PlotWidget):
             pen=pg.mkPen((255, 255, 0), width=1),
         )
 
-    def update(self, comp_disp: np.ndarray, normalize: bool = True) -> np.ndarray:
+    def update_plot(self, mti_out: np.ndarray, normalize: bool = True) -> None:
         """
-        Aplica o filtro MTI ao sinal atual e atualiza o plot.
-
-        O filtro opera como cancelador delay-line de 1 atraso:
-          mti_out = |comp_disp − comp_disp_anterior|
-
-        Isso cancela retornos estacionários (mesma amplitude e fase em
-        PRIs consecutivos) e preserva retornos de alvos em movimento.
+        Atualiza o plot com o sinal pós-MTI já computado pelo pipeline.
 
         Args:
-            comp_disp: Saída do filtro casado (envelope real) do PRI atual.
+            mti_out: Sinal pós-MTI calculado (valor absoluto da diferença).
             normalize: Se True, normaliza o eixo Y para [0, 1].
-
-        Returns:
-            np.ndarray — sinal pós-MTI (valor absoluto da diferença).
         """
-        mti_out  = self._mti.process(comp_disp)
         peak_mti = float(np.max(mti_out)) if mti_out.any() else 0.0
 
         if normalize:
@@ -93,5 +83,3 @@ class MTIWidget(pg.PlotWidget):
         else:
             self._curve.setData(self._t_us, mti_out)
             self.setYRange(0, max(peak_mti * 1.15, MIN_Y_MTI))
-
-        return mti_out
