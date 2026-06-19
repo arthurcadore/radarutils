@@ -3,7 +3,7 @@ import numpy as np
 import pyqtgraph as pg
 from PySide6 import QtCore, QtWidgets, QtGui
 
-from .component import Radar, Target, OrbitalTarget, NestedOrbitalTarget
+from .component import Radar, Target, OrbitalTarget, NestedOrbitalTarget, RegionalClutter
 from .detection import DetectionLog, DetectionRecord
 from .constants import WAVELENGTH_M, RCS_DEFAULT_M2, FOUR_PI_3
 from .html_contents import (
@@ -55,8 +55,27 @@ class PPI():
         target = NestedOrbitalTarget(r1, speed1, acc1, r2, speed2, acc2, clockwise1, clockwise2, alpha1_start, alpha2_start)
         self.targets.append(target)
 
-    def add_clutter():
-        pass
+    def add_regional_clutter(
+        self,
+        x: float,
+        y: float,
+        radius: float,
+        intensity: float,
+        distribution: str = "rayleigh",
+        **kwargs,
+    ) -> None:
+        """
+        Adiciona uma região circular de clutter ao PPI.
+
+        Args:
+            x, y:         Centro da região em metros.
+            radius:       Raio da região em metros.
+            intensity:    Amplitude característica do clutter (escala linear).
+            distribution: Modelo de amplitude: 'rayleigh', 'rice' ou 'weibull'.
+            **kwargs:     Parâmetros extras do modelo (k_factor, shape, etc.).
+        """
+        rc = RegionalClutter(x, y, radius, intensity, distribution, **kwargs)
+        self.clutters.append(rc)
 
     # 
     # Radar equation helpers
@@ -135,6 +154,8 @@ class PPI():
         Retorna:
             Lista de DetectionRecord para os targets dentro do feixe neste passo.
             Também acumula os registros em self.detection_log.
+            Inclui uma chave 'regional_clutters' com as regiões de clutter
+            atualmente iluminadas pelo feixe (usada pelo PulseWidget).
         """
         # Conta steps inteiros para evitar drift de ponto flutuante
         self._step += 1
@@ -191,10 +212,22 @@ class PPI():
                     print(f"[{self.elapsed_time:.3f}s] Target EXIT:  R={r:.2f}, Az={alpha:.2f}°")
                 target.in_beam = in_beam
 
+        # ── Clutters regionais: verifica quais estão no feixe e retorna ────────────
+        # Lista de (RegionalClutter, r_near, r_far) para as regiões iluminadas
+        active_regional: list = []
+        if self.radar and self.clutters:
+            for rc in self.clutters:
+                extent = rc.beam_range_extent(
+                    radar_theta_deg     = self.radar.theta % 360,
+                    radar_beamwidth_deg = self.radar.beamwidth,
+                )
+                if extent is not None:
+                    active_regional.append((rc, extent[0], extent[1]))
+
         if self.radar:
             self.radar.update(self.dt)
 
-        return detections
+        return detections, active_regional
 
 class PPIViewer(pg.PlotWidget):
     """Widget de visualização do PPI radar (Plan Position Indicator)."""
@@ -247,6 +280,26 @@ class PPIViewer(pg.PlotWidget):
 
         self.vectors_plot = pg.PlotDataItem(pen=pg.mkPen((255, 255, 255, 150), width=1))
         self.addItem(self.vectors_plot)
+
+        # Desenha regiões de clutter (estáticas — desenhadas uma única vez)
+        self._draw_regional_clutters()
+
+    def _draw_regional_clutters(self) -> None:
+        """
+        Desenha cada RegionalClutter de ``ppi.clutters`` como um círculo
+        verde semi-transparente no PPI real (alpha ≈ 0,5).
+        """
+        for rc in self.ppi.clutters:
+            ellipse = QtWidgets.QGraphicsEllipseItem(
+                rc.x - rc.radius,
+                rc.y - rc.radius,
+                2 * rc.radius,
+                2 * rc.radius,
+            )
+            ellipse.setBrush(pg.mkBrush(0, 255, 0, 128))   # verde, alpha=128 ≈ 0.5
+            ellipse.setPen(pg.mkPen((0, 255, 0, 200), width=2))
+            ellipse.setZValue(5)
+            self.addItem(ellipse)
 
     def _draw_grid(self):
         """Desenha círculos concêntricos, linhas radiais e rótulos de ângulo."""

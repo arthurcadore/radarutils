@@ -385,8 +385,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.close()
             return
 
-        # Avança simulação e coleta detecções do passo atual
-        detections = self._ppi.update()
+        # Avança simulação e coleta detecções + clutters regionais ativos
+        detections, active_regional = self._ppi.update()
 
         # Atualiza coluna 1: PPI Real e plots de série temporal
         self._viewer.redraw()
@@ -396,7 +396,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._phase_plot.add_detections(self._ppi.elapsed_time, detections)
 
         # Atualiza coluna 2: PulseWidget → retorna sinais processados
-        pulse_data = self._pulse_widget.update_pulse(detections)
+        pulse_data = self._pulse_widget.update_pulse(detections, active_regional=active_regional)
 
         # Atualiza coluna 3: pipeline MTI → Integrador → CFAR → PPI Estimado
         if pulse_data:

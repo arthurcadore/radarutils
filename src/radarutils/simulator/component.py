@@ -2,7 +2,8 @@
 component.py — Componentes físicos do simulador de radar.
 
 Define as classes de base e especializadas para todos os objetos que
-compõem a cena de simulação: o radar e os alvos (targets).
+compõem a cena de simulação: o radar, os alvos (targets) e as regiões
+de clutter localizado (RegionalClutter).
 
 Hierarquia de classes::
 
@@ -11,6 +12,8 @@ Hierarquia de classes::
     └── Target
         ├── OrbitalTarget
         └── NestedOrbitalTarget
+
+    RegionalClutter   ← região circular de clutter no PPI
 
 O método ``update(dt)`` avança o estado cinemático de cada componente
 por um passo de tempo ``dt`` (em segundos).
@@ -362,3 +365,178 @@ class NestedOrbitalTarget(Target):
 
         self.theta    = np.arctan2(vy, vx)
         self.velocity = np.sqrt(vx**2 + vy**2)
+
+
+# ══════════════════════════════════════════════════════════════════════════
+#  Regional Clutter
+# ══════════════════════════════════════════════════════════════════════════
+
+class RegionalClutter:
+    r"""
+    Região circular de clutter localizado no plano do PPI.
+
+    Quando o feixe do radar varre a região, o simulador injeta amostras
+    geradas pela ``distribution`` no vetor de recepção (rx) nas amostras
+    correspondentes ao atraso de range da região iluminada.
+
+    O sinal injetado é proporcional a ``intensity``.  Somente as amostras
+    cujos ranges de ida-e-volta caem dentro do círculo recebem contribuição,
+    garantindo que o clutter apareça no PPI exatamente na posição (x, y).
+
+    Attributes:
+        x (float):           Posição do centro da região em metros (eixo X).
+        y (float):           Posição do centro da região em metros (eixo Y).
+        radius (float):      Raio da região circular em metros.
+        intensity (float):   Amplitude característica do clutter (escala linear).
+        distribution (str):  Nome da distribuição de amplitude:
+                             ``'rayleigh'``, ``'rice'`` ou ``'weibull'``.
+        _clutter_model:      Instância de ``Clutter`` usada para geração das amostras.
+    """
+
+    VALID_DISTRIBUTIONS: tuple[str, ...] = ("rayleigh", "rice", "weibull")
+
+    def __init__(
+        self,
+        x: float,
+        y: float,
+        radius: float,
+        intensity: float,
+        distribution: str = "rayleigh",
+        **kwargs,
+    ):
+        """
+        Args:
+            x (float):           Coordenada X do centro da região (m).
+            y (float):           Coordenada Y do centro da região (m).
+            radius (float):      Raio da região circular (m). Deve ser positivo.
+            intensity (float):   Amplitude característica do clutter (≥ 0).
+            distribution (str):  Modelo de amplitude: 'rayleigh', 'rice' ou 'weibull'.
+            **kwargs:            Parâmetros extras repassados ao modelo de clutter
+                                 (ex.: ``k_factor`` para Rice, ``shape`` para Weibull).
+
+        Raises:
+            ValueError: Se ``distribution`` não for um dos modelos válidos.
+            ValueError: Se ``radius`` ≤ 0.
+        """
+        dist_key = distribution.strip().lower()
+        if dist_key not in self.VALID_DISTRIBUTIONS:
+            valid = ", ".join(f"'{d}'" for d in self.VALID_DISTRIBUTIONS)
+            raise ValueError(
+                f"Distribuição de clutter desconhecida: '{distribution}'. "
+                f"Opções válidas: {valid}."
+            )
+        if radius <= 0:
+            raise ValueError(f"O raio do RegionalClutter deve ser positivo, recebido: {radius}.")
+
+        self.x            = float(x)
+        self.y            = float(y)
+        self.radius       = float(radius)
+        self.intensity    = float(intensity)
+        self.distribution = dist_key
+        self._kwargs      = kwargs
+
+        # O modelo de clutter é criado com n_samples=1; ao gerar amostras
+        # passamos o número real de amostras via _generate_samples().
+        self._clutter_model = self._make_clutter_model(n_samples=1)
+
+    # ──────────────────────────────────────────────────────────────────────
+    #  Fábrica interna
+    # ──────────────────────────────────────────────────────────────────────
+
+    def _make_clutter_model(self, n_samples: int):
+        """
+        Cria/recria o modelo de clutter com o número de amostras correto.
+
+        Args:
+            n_samples: Número de amostras a gerar por chamada.
+
+        Returns:
+            Instância de Clutter (RayleighClutter, RiceClutter ou WeibullClutter).
+        """
+        # Importação local para evitar dependência circular no topo do módulo
+        from ..core.clutter import RayleighClutter, RiceClutter, WeibullClutter
+
+        if self.distribution == "rayleigh":
+            return RayleighClutter(n_samples, self.intensity)
+        elif self.distribution == "rice":
+            k = self._kwargs.get("k_factor", 1.0)
+            return RiceClutter(n_samples, self.intensity, k_factor=k)
+        else:  # weibull
+            c = self._kwargs.get("shape", 1.0)
+            return WeibullClutter(n_samples, self.intensity, shape=c)
+
+    # ──────────────────────────────────────────────────────────────────────
+    #  Geometria de interseção feixe × região
+    # ──────────────────────────────────────────────────────────────────────
+
+    def beam_range_extent(
+        self,
+        radar_theta_deg: float,
+        radar_beamwidth_deg: float,
+    ) -> tuple[float, float] | None:
+        """
+        Calcula o intervalo de ranges [r_near, r_far] (em metros) da região
+        circular iluminada pelo feixe atual do radar.
+
+        O feixe é modelado como um setor angular.  Se o centro da região
+        estiver dentro do setor (com margem de ``radius`` projetada), retorna
+        o intervalo de ranges.
+
+        Args:
+            radar_theta_deg:    Ângulo central do feixe (graus, 0-360).
+            radar_beamwidth_deg: Largura do feixe (graus).
+
+        Returns:
+            (r_near, r_far) em metros, ou None se o feixe não iluminar a região.
+        """
+        # Distância do centro da região ao radar
+        r_center = float(np.hypot(self.x, self.y))
+        if r_center == 0:
+            return (0.0, self.radius)
+
+        # Ângulo do centro da região em relação ao radar (graus)
+        alpha_deg = float(np.degrees(np.arctan2(self.y, self.x))) % 360.0
+
+        # Semiângulo subtendido pelo círculo visto do radar
+        #   sin(δ) = radius / r_center  (válido quando radius < r_center)
+        if self.radius >= r_center:
+            # O radar está dentro (ou na borda) da região: sempre iluminado
+            half_sub_deg = 90.0
+        else:
+            half_sub_deg = float(np.degrees(np.arcsin(self.radius / r_center)))
+
+        # Ângulo mínimo de separação do centro do feixe para ainda iluminar o círculo
+        bw_half = radar_beamwidth_deg / 2.0
+        angular_reach = bw_half + half_sub_deg
+
+        # Diferença angular (normalizada para [-180, 180))
+        diff = ((alpha_deg - radar_theta_deg + 180.0) % 360.0) - 180.0
+
+        if abs(diff) > angular_reach:
+            return None  # feixe não ilumina a região
+
+        # Intervalo de ranges: projeta a região no eixo radial
+        r_near = max(0.0, r_center - self.radius)
+        r_far  = r_center + self.radius
+        return (r_near, r_far)
+
+    # ──────────────────────────────────────────────────────────────────────
+    #  Geração de amostras
+    # ──────────────────────────────────────────────────────────────────────
+
+    def generate_samples(
+        self,
+        n_samples: int,
+    ) -> np.ndarray:
+        """
+        Gera ``n_samples`` amostras IQ complexas com a distribuição configurada
+        e a intensidade do clutter regional.
+
+        Args:
+            n_samples: Número de amostras a gerar.
+
+        Returns:
+            np.ndarray (complex128) de shape (n_samples,).
+        """
+        model = self._make_clutter_model(n_samples)
+        return model.generate()

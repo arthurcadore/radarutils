@@ -114,6 +114,27 @@ class Simulator:
             alpha1_start, alpha2_start,
         )
 
+    def add_regional_clutter(
+        self,
+        x: float,
+        y: float,
+        radius: float,
+        intensity: float,
+        distribution: str = "rayleigh",
+        **kwargs,
+    ) -> None:
+        r"""
+        Adiciona uma região circular de clutter ao PPI.
+
+        Args:
+            x, y:         Centro da região em metros.
+            radius:       Raio da região em metros (> 0).
+            intensity:    Amplitude característica do clutter (escala linear).
+            distribution: Modelo de amplitude: 'rayleigh', 'rice' ou 'weibull'.
+            **kwargs:     Parâmetros extras do modelo (ex.: k_factor, shape).
+        """
+        self.ppi.add_regional_clutter(x, y, radius, intensity, distribution, **kwargs)
+
     def run(self, gui: bool = True, show_vectors: bool = False, output_file: str = None,
             coherent_integration: bool = False, clutter_type: str = "None", normalize_plots: bool = True,
             max_video_mb: float = None, video_quality: int = 8):
@@ -166,7 +187,7 @@ class Simulator:
         r"""Loop de simulação sem interface gráfica."""
         print("=== Simulator running (headless) ===")
         while self.ppi.elapsed_time < self.ppi.t:
-            self.ppi.update()
+            self.ppi.update()  # retorna (detections, active_regional) — ignorado no headless
         print(f"=== Simulation finished at t={self.ppi.elapsed_time:.2f}s ===")
 
     def _run_with_screen(self, show_vectors: bool = False, output_file: str = None,
@@ -207,7 +228,6 @@ def _build_default_simulator() -> Simulator:
     sim.add_orbital_target(r=900,  speed=60,  clockwise=False,  alpha_start=np.pi)
     sim.add_orbital_target(r=600,  speed=60,  clockwise=False, alpha_start=np.pi/2)
 
-    # Alvo 1
     sim.add_nested_orbital_target(
         r1=220, speed1=95,  acc1=1,
         r2=520, speed2=130, acc2=-1,
@@ -215,7 +235,6 @@ def _build_default_simulator() -> Simulator:
         alpha1_start=np.pi, alpha2_start=0,
     )
     
-    # Alvo 2
     sim.add_nested_orbital_target(
         r1=250, speed1=140, acc1=-2,
         r2=600, speed2=85,  acc2=1,
@@ -223,7 +242,6 @@ def _build_default_simulator() -> Simulator:
         alpha1_start=np.pi, alpha2_start=np.pi/4,
     )
     
-    # Alvo 3
     sim.add_nested_orbital_target(
         r1=220, speed1=110, acc1=0,
         r2=500, speed2=90,  acc2=2,
@@ -231,7 +249,6 @@ def _build_default_simulator() -> Simulator:
         alpha1_start=np.pi/2, alpha2_start=3*np.pi/2,
     )
     
-    # Alvo 4
     sim.add_nested_orbital_target(
         r1=280, speed1=75,  acc1=3,
         r2=660, speed2=145, acc2=-2,
@@ -239,7 +256,6 @@ def _build_default_simulator() -> Simulator:
         alpha1_start=5*np.pi/6, alpha2_start=np.pi/2,
     )
     
-    # Alvo 5 (novo)
     sim.add_nested_orbital_target(
         r1=250, speed1=125, acc1=-1,
         r2=500, speed2=115, acc2=1,
@@ -247,12 +263,25 @@ def _build_default_simulator() -> Simulator:
         alpha1_start=7*np.pi/6, alpha2_start=np.pi,
     )
     
-    # Alvo 6 (novo)
     sim.add_nested_orbital_target(
         r1=200, speed1=160, acc1=2,
         r2=550, speed2=70, acc2=0,
         clockwise1=True, clockwise2=False,
         alpha1_start=np.pi/8, alpha2_start=11*np.pi/8,
+    )
+
+    sim.add_regional_clutter(
+        x=800, y=-400, radius=150,  intensity=1e-3,
+        distribution="rice", k_factor=0.6
+    )
+    sim.add_regional_clutter(
+        x=-400, y=-400, radius=100, intensity=1e-3,
+        distribution="weibull", shape=1.8
+    )
+
+    sim.add_regional_clutter(
+        x=-900, y=+500, radius=100, intensity=1e-3,
+        distribution="rayleigh", k_factor=0.6
     )
 
     return sim

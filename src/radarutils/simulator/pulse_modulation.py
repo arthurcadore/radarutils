@@ -231,7 +231,7 @@ class PulseWidget(QtWidgets.QSplitter):
     #  Atualização por frame
     # ──────────────────────────────────────────────────────────────────────
 
-    def update_pulse(self, detections: list[DetectionRecord]) -> dict:
+    def update_pulse(self, detections: list[DetectionRecord], active_regional: list = None) -> dict:
         r"""
         Reconstrói o sinal RX banda base a partir das detecções do PPI,
         adiciona ruído AWGN, calcula o Filtro Casado e atualiza os plots.
@@ -240,14 +240,18 @@ class PulseWidget(QtWidgets.QSplitter):
           1. Para cada detecção: calcula atraso τ = 2R/c, amplitude relativa
              e frequência Doppler f_d = 2·v_r·F_C/c (via ``core.waveform``).
           2. Soma contribuições de eco ao sinal real rx[] e complexo rx_complex[].
-          3. Injeta clutter Rayleigh (opcional).
-          4. Normaliza sinal (ganho fixo independente de SNR).
-          5. Adiciona AWGN gaussiano calibrado pelo snr_db (via ``core.waveform``).
-          6. Calcula correlação cruzada (matched filter) real e complexa (via ``core.waveform``).
-          7. Atualiza plots e cabeçalho HTML.
+          3. Injeta clutter regional (``active_regional``) nas amostras de range
+             correspondentes ao atraso de ida e volta da região iluminada.
+          4. Injeta clutter Rayleigh/Rice/Weibull ambiental (opcional).
+          5. Normaliza sinal (ganho fixo independente de SNR).
+          6. Adiciona AWGN gaussiano calibrado pelo snr_db (via ``core.waveform``).
+          7. Calcula correlação cruzada (matched filter) real e complexa (via ``core.waveform``).
+          8. Atualiza plots e cabeçalho HTML.
 
         Args:
             detections (list[DetectionRecord]): Lista de DetectionRecord do passo atual.
+            active_regional (list | None): Lista de (RegionalClutter, r_near, r_far) retornada
+                pelo PPI.update() para regiões de clutter iluminadas pelo feixe.
 
         Returns:
             pulse_data (dict): Dicionário contendo os seguintes dados com chaves:
@@ -303,7 +307,29 @@ class PulseWidget(QtWidgets.QSplitter):
                 rx         += echo_real
                 rx_complex += echo_cplx
 
-        # ── 2. Clutter ambiental (Rayleigh / Rice / Weibull) ─────────────
+        # ── 2. Clutter regional (regiões circulares no PPI) ──────────────
+        # Cada entrada de active_regional é (RegionalClutter, r_near, r_far).
+        # Convertemos o intervalo de range para índices de amostra e geramos
+        # o sinal de clutter nesse segmento do vetor rx.
+        if active_regional:
+            for rc, r_near, r_far in active_regional:
+                # Índices de amostra correspondentes ao intervalo de range [r_near, r_far]
+                n_near = int(2.0 * r_near / C * self.fs)
+                n_far  = int(2.0 * r_far  / C * self.fs)
+                n_near = max(0, min(n_near, N_SAMPLES - 1))
+                n_far  = max(0, min(n_far,  N_SAMPLES - 1))
+
+                n_span = n_far - n_near
+                if n_span <= 0:
+                    continue  # intervalo degenerado — descarta
+
+                # Gera amostras IQ complexas para o segmento iluminado
+                clutter_samples = rc.generate_samples(n_span)
+
+                rx[n_near:n_far]         += np.real(clutter_samples)
+                rx_complex[n_near:n_far] += clutter_samples
+
+        # ── 3. Clutter ambiental (Rayleigh / Rice / Weibull) ─────────────
         if self._clutter is not None:
             c_noise     = self._clutter.generate()
             rx_complex += c_noise
