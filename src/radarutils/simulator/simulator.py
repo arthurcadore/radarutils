@@ -123,12 +123,13 @@ class Simulator:
 
 def _build_default_simulator() -> Simulator:
     """Cria o simulador com a configuração padrão de demonstração."""
-    sim = Simulator(dimensions=(2400, 2400), dt=0.03, t=180.0, r_max=1200.0)
+    sim = Simulator(dimensions=(2400, 2400), dt=0.05, t=180.0, r_max=1200.0)
 
     sim.add_radar(theta=0, rpm=5, clockwise=True, beamwidth=10)
 
     # Targets lineares / estáticos
-    sim.add_target(x=-600, y=-600, vel=0, acc=0, theta=0)
+    sim.add_target(x=-300, y=-300, vel=0, acc=0, theta=0)
+    sim.add_target(x=0, y=-500, vel=0, acc=0, theta=0)
 
     # Targets orbitais simples
     sim.add_orbital_target(r=900,  speed=60,  clockwise=False,  alpha_start=np.pi)
@@ -177,16 +178,16 @@ def _build_default_simulator() -> Simulator:
     )
 
     sim.add_regional_clutter(
-        x=800, y=-400, radius=150,  intensity=1e-3,
+        x=800, y=-400, radius=150,  intensity=1e-6,
         distribution="weibull", shape=1.6
     )
     sim.add_regional_clutter(
-        x=-400, y=-400, radius=100, intensity=1e-3,
+        x=-700, y=-700, radius=100, intensity=1e-6,
         distribution="weibull", shape=1.8
     )
 
     sim.add_regional_clutter(
-        x=-900, y=+500, radius=100, intensity=1e-3,
+        x=-900, y=+500, radius=100, intensity=1e-6,
         distribution="weibull", shape=1.6
     )
 

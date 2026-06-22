@@ -1,10 +1,9 @@
 r"""
-pipeline.py — Funções puras, orquestração e UI do pipeline de radar.
+pipeline.py — Funções puras e orquestração do pipeline de radar.
 
 Este módulo centraliza:
 1. As funções matemáticas puras de cada estágio do pipeline.
 2. A classe `RadarPipeline` que instancia o PPI e orquestra a simulação numérico-temporal.
-3. A classe `PipelineFrontendWidget` que exibe a banda base (fusão solicitada).
 """
 
 from __future__ import annotations
@@ -14,8 +13,6 @@ from typing import Optional
 
 import numpy as np
 import scipy.signal
-import pyqtgraph as pg
-from PySide6 import QtCore, QtWidgets
 
 from radarutils.core.clutter import Clutter, clutter_from_str
 from radarutils.core.cfar import ca_cfar
@@ -28,13 +25,12 @@ from radarutils.core.waveform import (
     doppler_frequency,
 )
 from radarutils.simulator.constants import (
-    C, F_C, B, N_SAMPLES, DEFAULT_SNR_DB,
+    C, F_C, N_SAMPLES, DEFAULT_SNR_DB,
     N_GUARD, N_TRAIN, K_CFAR, MIN_CFAR_ABS,
 )
 from radarutils.simulator.detection import DetectionRecord
 from radarutils.simulator.pulse import WaveformParams, waveform_params_from_rmax
 from radarutils.simulator.ppi import PPI
-from radarutils.simulator.html_contents import get_pulse_header_html
 
 class RadarPipeline:
     r"""
@@ -242,114 +238,4 @@ def estimated_ppi_stage(
         detections.append((x, y, range_est))
 
     return detections
-
-
-class PipelineFrontendWidget(QtWidgets.QSplitter):
-    r"""
-    Painel de visualização da banda base gerada pelo Pipeline.
-    """
-    def __init__(self, pipeline: RadarPipeline):
-        super().__init__(QtCore.Qt.Vertical)
-
-        self.pipeline = pipeline
-        self.wp = pipeline.wp
-        
-        self.setStyleSheet("QSplitter::handle { background-color: #555555; height: 3px; }")
-
-        rx_start_us = self.wp.T_P * 1e6
-
-        self._build_header()
-        self._build_plots(rx_start_us)
-
-        self._glw.ci.layout.setRowStretchFactor(0, 1)
-        self._glw.ci.layout.setRowStretchFactor(1, 1)
-        self._glw.ci.layout.setRowStretchFactor(2, 1.5)
-
-        self.setSizes([200, 800])
-
-    def _build_header(self) -> None:
-        self._header_label = QtWidgets.QLabel()
-        self._header_label.setStyleSheet("background-color: black;")
-        self._header_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.addWidget(self._header_label)
-
-    def _build_plots(self, rx_start_us: float) -> None:
-        self._glw = pg.GraphicsLayoutWidget()
-        self._glw.setBackground('k')
-        self._glw.ci.layout.setSpacing(12)
-        self.addWidget(self._glw)
-
-        # Plot TX
-        self._tx_plot = self._glw.addPlot(row=0, col=0)
-        self._tx_plot.setLabel('left', 'TX  Pulse')
-        self._tx_plot.getAxis('left').setWidth(65)
-        self._tx_plot.showGrid(x=True, y=True, alpha=0.22)
-        self._tx_plot.setYRange(-1.2, 1.2)
-        self._tx_plot.setMouseEnabled(x=False, y=False)
-        self._tx_curve = self._tx_plot.plot(
-            self.wp.t_us, self.wp.tx, pen=pg.mkPen((0, 200, 255), width=1),
-        )
-        self._tx_plot.addItem(pg.InfiniteLine(pos=0, angle=0, pen=pg.mkPen((0, 80, 100), width=1, style=QtCore.Qt.DotLine)))
-        self._tx_plot.addItem(pg.InfiniteLine(pos=rx_start_us, angle=90, pen=pg.mkPen((180, 80, 0), width=1, style=QtCore.Qt.DashLine)))
-
-        # Plot RX
-        self._rx_plot = self._glw.addPlot(row=1, col=0)
-        self._rx_plot.setLabel('left', 'RX Baseband')
-        self._rx_plot.getAxis('left').setWidth(65)
-        self._rx_plot.showGrid(x=True, y=True, alpha=0.22)
-        self._rx_plot.setYRange(-1.2, 1.2)
-        self._rx_plot.setMouseEnabled(x=False, y=False)
-        self._rx_plot.setXLink(self._tx_plot)
-        self._rx_curve = self._rx_plot.plot(
-            self.wp.t_us, np.zeros(N_SAMPLES), pen=pg.mkPen((255, 140, 0), width=1),
-        )
-        self._rx_plot.addItem(pg.InfiniteLine(pos=0, angle=0, pen=pg.mkPen((80, 50, 0), width=1, style=QtCore.Qt.DotLine)))
-        self._rx_plot.addItem(pg.InfiniteLine(pos=rx_start_us, angle=90, pen=pg.mkPen((180, 80, 0), width=1, style=QtCore.Qt.DashLine)))
-
-        # Plot MF
-        self._mf_plot = self._glw.addPlot(row=2, col=0)
-        self._mf_plot.setLabel('left', 'Matched Filter Out')
-        self._mf_plot.getAxis('left').setWidth(65)
-        self._mf_plot.setLabel('bottom', 'Tempo (µs)')
-        self._mf_plot.showGrid(x=True, y=True, alpha=0.22)
-        self._mf_plot.setYRange(0, 100)
-        self._mf_plot.setMouseEnabled(x=False, y=False)
-        self._mf_plot.setXLink(self._tx_plot)
-        self._mf_curve = self._mf_plot.plot(
-            self.wp.t_us, np.zeros(N_SAMPLES), pen=pg.mkPen((255, 0, 255), width=1),
-        )
-        self._mf_plot.addItem(pg.InfiniteLine(pos=rx_start_us, angle=90, pen=pg.mkPen((180, 80, 0), width=1, style=QtCore.Qt.DashLine)))
-
-    def update_plot(self, rx_noisy: np.ndarray, comp_disp: np.ndarray, azimuth_deg: float) -> None:
-        self._rx_curve.setData(self.wp.t_us, rx_noisy)
-        self._update_header()
-
-        peak_comp = float(np.max(comp_disp))
-        if self.pipeline.config.get('normalize_plots', True):
-            mf_disp = (comp_disp / peak_comp) if peak_comp > 1e-30 else comp_disp
-            self._mf_curve.setData(self.wp.t_us, mf_disp)
-            self._mf_plot.setYRange(0, 1.05)
-        else:
-            self._mf_curve.setData(self.wp.t_us, comp_disp)
-            self._mf_plot.setYRange(0, max(peak_comp + 20, 100))
-
-    def _update_header(self) -> None:
-        T_us    = self.wp.T_P   * 1e6
-        PRI_us  = self.wp.T_PRI * 1e6
-        B_MHz   = B / 1e6
-        ppi     = self.pipeline.ppi
-        r_min   = ppi.r_max / 7.0 if ppi else 0.0
-        bw      = ppi.radar.beamwidth if (ppi and ppi.radar) else 0.0
-        c_time  = ppi.elapsed_time if ppi else 0.0
-        t_total = ppi.t if ppi else 0.0
-        r_max   = ppi.r_max if ppi else 0.0
-        c_str        = type(self.pipeline.clutter).__name__.replace("Clutter", "") if self.pipeline.clutter else "None"
-        int_mode_str = "Coherent" if self.pipeline.config.get('integrator_type') == "coherent" else "Non-Coherent"
-
-        html = get_pulse_header_html(
-            PRI_us=PRI_us, T_us=T_us, F_C_GHz=F_C / 1e9, B_MHz=B_MHz,
-            snr_db=self.pipeline.snr_db, c_str=c_str, r_min=r_min, r_max=r_max,
-            bw=bw, int_mode_str=int_mode_str, c_time=c_time, t_total=t_total,
-        )
-        self._header_label.setText(html)
 

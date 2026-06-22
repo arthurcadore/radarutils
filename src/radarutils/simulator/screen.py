@@ -3,18 +3,15 @@ screen.py — Orquestração da interface gráfica do simulador de radar.
 
 Responsabilidades deste módulo:
   - ``prepare_output_file()`` : cria diretório e retorna caminho do vídeo MP4.
-  - ``ProcessingWidget``      : QSplitter vertical que agrupa os widgets de
-                                processamento (MTI → Integrador → CFAR → PPI Estimado).
+  - ``ProcessingWidget``      : QSplitter vertical com MTI → Integrador → CFAR → PPI Estimado.
   - ``MainWindow``            : janela principal Qt com layout de 3 colunas e
                                 timer de atualização em 30 ms.
 
-Os widgets individuais são importados de arquivos especializados:
-  plots.py            → DetectionPlot, AmplitudePlot, PhasePlot
-  pulse_modulation.py → PulseWidget
-  mti.py              → MTIWidget
-  integrator.py       → IntegratorWidget
-  cfar.py             → CfarWidget
-  ppi.py              → PPIViewer, PPIEstimatedViewer, PPIEstimatedTracker
+Todos os widgets de plot estão em:
+  plots.py → DetectionPlot, AmplitudePlot, PhasePlot,
+              MTIWidget, IntegratorWidget, CfarWidget,
+              PipelineFrontendWidget
+  ppi.py   → PPIViewer, PPIEstimatedViewer, PPIEstimatedTracker
 """
 
 import math
@@ -34,16 +31,17 @@ from radarutils.simulator.constants import (
     C, N_SAMPLES, K_CFAR, N_INT, MAX_MATCH_DIST,
 )
 
-# ── Widgets visuais especializados ───────────────────────────────────────
-from radarutils.simulator.pipeline import RadarPipeline, PipelineFrontendWidget
+# ── Lógica e Instâncias puras ────────────────────────────────────────────
+from radarutils.simulator.pipeline import RadarPipeline
 from radarutils.core.mti import MTI
 from radarutils.core.integrator import integrator_from_str, CoherentIntegrator
 
 # ── Widgets visuais especializados ───────────────────────────────────────
-from radarutils.simulator.plots import DetectionPlot, AmplitudePlot, PhasePlot
-from radarutils.simulator.mti import MTIWidget
-from radarutils.simulator.integrator import IntegratorWidget
-from radarutils.simulator.cfar import CfarWidget
+from radarutils.simulator.plots import (
+    DetectionPlot, AmplitudePlot, PhasePlot,
+    MTIWidget, IntegratorWidget, CfarWidget,
+    PipelineFrontendWidget,
+)
 
 
 # ──────────────────────────────────────────────────────────────────────────
