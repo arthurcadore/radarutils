@@ -13,25 +13,25 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.14"]
 
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: ${{ matrix.python-version }}
-      
+          enable-cache: true
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[dev]
-      
+        run: uv sync --dev --python ${{ matrix.python-version }}
+
       - name: Run tests with pytest
-        run: |
-          pytest --cov=radarutils --cov-report=xml --cov-report=term-missing
-      
+        run: uv run --python ${{ matrix.python-version }} pytest --cov=radarutils --cov-report=xml --cov-report=term-missing
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
@@ -44,26 +44,19 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'release'
-    
+
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      
-      - name: Install build dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install build twine
-      
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
       - name: Build package
-        run: python -m build
-      
+        run: uv build
+
       - name: Check package
-        run: twine check dist/*
-      
+        run: uvx twine check dist/*
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -76,13 +69,16 @@ jobs:
     if: github.event_name == 'release' && github.event.action == 'published'
     permissions:
       id-token: write
-    
+
     steps:
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist/
-      
+
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        run: uv publish

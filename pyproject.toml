@@ -10,33 +10,44 @@ dependencies = [
     "numpy>=1.21.0",
     "matplotlib>=3.4.0",
     "scipy>=1.7.0",
-    "scienceplots>=2.1.1"
+    "scienceplots>=2.1.1",
+    "pyqtgraph>=0.13.0",
+    "PySide6>=6.5.0",
+    "imageio>=2.30.0",
 ]
-requires-python = ">=3.9"
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.0.0",
-    "pytest-cov>=4.0.0"
-]
+requires-python = ">=3.14"
 
 [project.urls]
 Homepage = "https://arthurcadore.github.io/radarutils/"
 Repository = "https://github.com/arthurcadore/radarutils"
 
 [build-system]
-requires = ["build", "setuptools>=61.0.0", "wheel", "twine"]
-build-backend = "setuptools.build_meta"
+requires = ["uv_build>=0.11.7,<0.12.0"]
+build-backend = "uv_build"
 
-[tool.setuptools]
-package-dir = {"" = "src"}
+[tool.uv.build-backend]
+module-root = "src"
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[dependency-groups]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
+docs = [
+    "mkdocs>=1.6.0",
+    "mkdocs-material>=9.6.0",
+    "mkdocstrings[python]>=0.30.0",
+    "mkdocs-autorefs>=1.4.0",
+    "mkdocs-badges>=0.5.0",
+]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-ra -q --cov=radarutils --cov-report=html --cov-report=term-missing"
 testpaths = [
     "tests",
+]
+markers = [
+    "plots: Tests that generate plots (use -m plots to run them)",
+    "slow: Tests that take a long time to run",
 ]
